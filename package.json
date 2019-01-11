@@ -1,0 +1,22 @@
+{
+  "name": "xf05communication",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Max-Berkowitz/XF05Communication.git"
+  },
+  "author": "Max Berkowitz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Max-Berkowitz/XF05Communication/issues"
+  },
+  "homepage": "https://github.com/Max-Berkowitz/XF05Communication#readme",
+  "dependencies": {
+    "serialport": "^7.1.0"
+  }
+}
