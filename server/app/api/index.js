@@ -7,15 +7,14 @@ const {
   tempParser,
   transferSwitchParser,
   blankingCodeReadParser,
-  filterBankIndParser,
   msfbSwitchParser,
   msfbFilterCheckParser,
 } = require('../utils/prasers');
 
 let port;
 
-SerialPort.list().then(([comPort]) => {
-  port = openPort(comPort.comName);
+SerialPort.list().then(([{ comName }]) => {
+  port = openPort(comName);
 });
 
 const api = Router();
@@ -23,18 +22,18 @@ const api = Router();
 api.get('/', async (req, res) => {
   const { command } = req.query;
   const response = await port.writeCommand(command.toUpperCase(), identityParser);
-  res.send({ response });
+  res.status(200).send({ response });
 });
 
 api.get('/temp', async (req, res) => {
   const temperature = await port.writeCommand('TA000', tempParser);
-  res.send({ temperature });
+  res.status(200).send({ temperature });
 });
 
 api.get('/transfer_switch', async (req, res) => {
   const { channel, on } = req.query;
   const status = await port.writeCommand(`2A${channel}${+!+on}0`, transferSwitchParser);
-  res.send({ status });
+  res.status(200).send({ status });
 });
 
 const blanking = Router();
@@ -50,7 +49,7 @@ blanking
   .get(async (req, res) => {
     const { channel } = req.query;
     const code = await port.writeCommand(`DR${channel}10`, blankingCodeReadParser);
-    res.send({ code });
+    res.status(200).send({ code });
   })
   .post(async (req, res) => {
     const { channel, code } = req.body;
@@ -62,10 +61,10 @@ api.use('/blanking', blanking);
 
 const filterBank = Router();
 
-filterBank.post('/indicator', async (req, res) => {
-  const { channel } = req.body;
-  const success = await port.writeCommand(`EA${channel}00`, filterBankIndParser);
-  res.sendStatus(success ? 201 : 400);
+filterBank.get('/indicator', async (req, res) => {
+  const { channel } = req.query;
+  const status = await port.writeCommand(`EA${channel}00`, identityParser);
+  res.status(200).send({ status });
 });
 
 filterBank.post('/mode', async (req, res) => {
@@ -86,14 +85,19 @@ api.post('/manual_attenuation', async (req, res) => {
   res.sendStatus(success ? 201 : 400);
 });
 
-api.get('/msfb_switch', async (req, res) => {
-  const { filter } = req.query;
-  let switchValue = 0;
-  if (filter === '3') switchValue = 1;
-  else if (filter === '4') switchValue = 2;
-  const switchResponse = await port.writeCommand(`MP${switchValue}00`, msfbSwitchParser);
-  const filterResponse = await port.writeCommand(`MS000`, msfbFilterCheckParser(switchValue));
-  res.send({ switchResponse, filterResponse });
-});
+api
+  .route('/msfb_switch')
+  .post(async (req, res) => {
+    const { filter } = req.query;
+    let switchValue = 0;
+    if (filter === '3') switchValue = 1;
+    else if (filter === '4') switchValue = 2;
+    const status = await port.writeCommand(`MP${switchValue}00`, msfbSwitchParser);
+    res.status(200).send({ status });
+  })
+  .get(async (req, res) => {
+    const status = await port.writeCommand(`MS000`, msfbFilterCheckParser);
+    res.status(200).send({ status });
+  });
 
 module.exports = api;
