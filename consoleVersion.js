@@ -39,8 +39,8 @@ const readStdin = () => {
   });
 };
 
-SerialPort.list().then(([comPort]) => {
-  port = new SerialPort(comPort.comName, {
+SerialPort.list().then(([{comName}]) => {
+  port = new SerialPort(comName, {
     baudRate: 115200,
     parity: 'even',
     stopBits: 1,

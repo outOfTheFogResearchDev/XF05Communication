@@ -1,12 +1,15 @@
-const splitTrimParser = split => data => data.split(split)[1].trim();
+const splitXParser = data => data.split('x')[1].trim();
 
 module.exports = {
   successParser: (data, command) => command === data.slice(0, -1) && !+data.slice(-1),
   identityParser: data => data,
-  tempParser: splitTrimParser('x'),
-  transferSwitchParser: data => (+splitTrimParser('IND:')(data) ? 'On' : 'Off'),
-  blankingCodeReadParser: splitTrimParser('x'),
-  filterBankIndParser: data => data === 'EA100 EXT Filter',
+  tempParser: splitXParser,
+  transferSwitchParser: data =>
+    data
+      .split(' ')
+      .slice(1)
+      .join(' '),
+  blankingCodeReadParser: splitXParser,
   msfbSwitchParser: data => data.slice(6),
-  msfbFilterCheckParser: switchValue => data => +data.slice(-1) === switchValue,
+  msfbFilterCheckParser: data => `IND: ${data.slice(-1)}`,
 };
