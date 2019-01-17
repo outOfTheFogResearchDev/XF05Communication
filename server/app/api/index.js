@@ -13,16 +13,20 @@ const {
 
 let port;
 
-SerialPort.list().then(([{ comName }]) => {
-  port = openPort(comName);
-});
-
 const api = Router();
 
-api.get('/', async (req, res) => {
-  const { command } = req.query;
-  const response = await port.writeCommand(command.toUpperCase(), identityParser);
-  res.status(200).send({ response });
+api.post('/connect', async (req, res) => {
+  if (port) {
+    res.sendStatus(201);
+  } else {
+    try {
+      const [{ comName }] = await SerialPort.list();
+      port = await openPort(comName);
+      res.sendStatus(201);
+    } catch (e) {
+      res.sendStatus(400);
+    }
+  }
 });
 
 api.get('/temp', async (req, res) => {
@@ -99,5 +103,11 @@ api
     const status = await port.writeCommand(`MS000`, msfbFilterCheckParser);
     res.status(200).send({ status });
   });
+
+api.get('/:command', async (req, res) => {
+  const { command } = req.params;
+  const response = await port.writeCommand(command.toUpperCase(), identityParser);
+  res.status(200).send({ response });
+});
 
 module.exports = api;
