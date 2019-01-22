@@ -6,12 +6,12 @@ const Container = styled.div`
   gird-area: blanking;
   display: grid;
   grid:
-    'header switch'
-    'read write'
-    'level level';
+    'header off switch on'
+    'read read write write'
+    'level level level level';
   border-color: '#000';
   border-style: double;
-  width: 200px;
+  width: 225px;
   height: 135px;
   justify-self: center;
   align-self: center;
@@ -56,6 +56,19 @@ const BlankingNumber = styled.input`
   transform: scale(1.45);
 `;
 
+const SwitchLabelOff = styled.p`
+  grid-area: off;
+  justify-self: end;
+  align-self: center;
+  font-size: 75%;
+`;
+
+const SwitchLabelOn = styled.p`
+  grid-area: on;
+  align-self: center;
+  font-size: 75%;
+`;
+
 /* eslint-disable react/prop-types */
 export default ({
   blankingSwitchToggled,
@@ -67,7 +80,9 @@ export default ({
 }) => (
   <Container>
     <Label>Blanking</Label>
+    <SwitchLabelOff>off</SwitchLabelOff>
     <ToggleSwitch toggled={blankingSwitchToggled} onToggle={handleBlankingSwitchToggle} />
+    <SwitchLabelOn>on</SwitchLabelOn>
     <Read type="submit" onClick={handleBlankingReadClick}>
       Read Code
     </Read>

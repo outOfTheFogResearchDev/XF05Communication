@@ -95,20 +95,24 @@ api.post('/automatic_attenuation', async (req, res) => {
   res.sendStatus(success ? 201 : 400);
 });
 
-api
-  .route('/msfb_switch')
-  .post(async (req, res) => {
-    const { filter } = req.query;
-    let switchValue = 0;
-    if (filter === '3') switchValue = 1;
-    else if (filter === '4') switchValue = 2;
-    const status = await port.writeCommand(`MP${switchValue}00`, msfbSwitchParser);
-    res.status(200).send({ status });
-  })
-  .get(async (req, res) => {
-    const status = await port.writeCommand(`MS000`, msfbFilterCheckParser);
-    res.status(200).send({ status });
-  });
+const msfbSwitch = Router();
+
+msfbSwitch.get('/filter', async (req, res) => {
+  const { filter } = req.query;
+  let switchValue = 0;
+  if (filter === '3') switchValue = 1;
+  else if (filter === '4') switchValue = 2;
+  else if (filter === 'both') switchValue = 3;
+  const status = await port.writeCommand(`MP${switchValue}00`, msfbSwitchParser);
+  res.status(200).send({ status });
+});
+
+msfbSwitch.get('/indicator', async (req, res) => {
+  const indicator = await port.writeCommand(`MS000`, msfbFilterCheckParser);
+  res.status(200).send({ indicator });
+});
+
+api.use('/msfb_switch', msfbSwitch);
 
 api.get('/:command', async (req, res) => {
   const { command } = req.params;

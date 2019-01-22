@@ -6,11 +6,11 @@ const Container = styled.div`
   grid-area: transfer-switch;
   display: grid;
   grid:
-    'header'
-    'switch';
+    'header header header'
+    'off switch on';
   border-color: '#000';
   border-style: double;
-  width: 170px;
+  width: 175px;
   height: 110px;
   justify-self: center;
   align-self: center;
@@ -23,10 +23,25 @@ const Label = styled.p`
   justify-self: center;
 `;
 
+const SwitchLabelOff = styled.p`
+  grid-area: off;
+  justify-self: end;
+  align-self: center;
+  font-size: 75%;
+`;
+
+const SwitchLabelOn = styled.p`
+  grid-area: on;
+  align-self: center;
+  font-size: 75%;
+`;
+
 /* eslint-disable react/prop-types */
 export default ({ transferSwitchToggled, handleTransferSwitchToggle }) => (
   <Container>
     <Label>Transfer Switch</Label>
+    <SwitchLabelOff>IND: 0</SwitchLabelOff>
     <ToggleSwitch toggled={transferSwitchToggled} onToggle={handleTransferSwitchToggle} />
+    <SwitchLabelOn>IND: 1</SwitchLabelOn>
   </Container>
 );
