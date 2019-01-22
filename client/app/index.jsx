@@ -1,91 +1,22 @@
 import React, { Fragment, Component } from 'react';
 import { get, post } from 'axios';
 import styled from 'styled-components';
-import ToggleSwitch from './components/toggleSwitch';
+import Header from './components/header';
+import TransferSwitch from './components/transferSwitch';
+import FilterBank from './components/filterBank';
+import Attenuation from './components/attenuation';
+import Blanking from './components/blanking';
 
-const UnitForm = styled.form`
-  display: inline-block;
-`;
-
-const UnitNumberLabel = styled.label`
-  display: inline-block;
-  font-size: 150%;
-  margin-left: 5px;
-`;
-
-const UnitNumber = styled.input`
-  display: inline-block;
-  width: 35px;
-  margin-left: 15px;
-  margin-bottom: 10px;
-  transform: scale(1.45);
-`;
-
-const ProgramTitle = styled.h1`
-  display: inline-block;
-  font-size: 150%;
-  margin-left: 212px;
-`;
-
-const Reconnect = styled.button`
-  display: inline-block;
-  padding: 5px 5px;
-  margin-left: 120px;
-`;
-
-const CheckConnection = styled.button`
-  display: inline-block;
-  padding: 5px 5px;
-  margin-left: 13px;
-`;
-
-const CustomCommandSubmit = styled.button`
-  float: right;
-  padding: 13.5px 10px;
-  margin-right: 10px;
-  display: inline-block;
-`;
-
-const CustomCommand = styled.input`
-  display: inline-block;
-  float: right;
-  margin-right: 15px;
-  height: 40px;
-  width: 100px;
-  font-size: 150%;
-`;
-
-const Temperature = styled.button`
-  display: inline-block;
-  float: right;
-  margin-right: 142px;
-  padding: 13.5px 10px;
-`;
-
-const ChannelText = styled.label`
-  display: inline-block;
-  font-size: 150%;
-  margin-left: 40px;
-`;
-
-const ChannelRadio = styled.input`
-  display: inline-block;
-  margin-right: 15px;
-  margin-left: 10px;
-  transform: scale(1.25);
-`;
-
-const ResponseContainer = styled.div`
-  display: inline-block;
-  float: right;
-  margin-right: 10px;
-  width: 411px;
-  border: 2px solid grey;
-  text-align: center;
-`;
-
-const Response = styled.span`
-  font-size: 300%;
+const Container = styled.div`
+  display: grid;
+  grid:
+    'transfer-switch filter-bank'
+    'attenuation blanking';
+  margin: 15px 5px;
+  width: 500px;
+  padding: 10px 10px;
+  border-style: solid;
+  border-color: #ddd;
 `;
 
 export default class extends Component {
@@ -95,8 +26,13 @@ export default class extends Component {
       unit: '',
       channel: '',
       customCommand: '',
-      response: 'dddddddddddd ffffffffffffff',
+      response: 'No Connection',
       connected: false,
+      transferSwitchToggled: false,
+      filterBankState: '',
+      attValue: 'Auto',
+      blankingSwitchToggled: false,
+      blankingValue: '',
     };
 
     this.connect = this.connect.bind(this);
@@ -106,7 +42,15 @@ export default class extends Component {
     this.handleCustomCommandChange = this.handleCustomCommandChange.bind(this);
     this.handleCustomCommandSubmit = this.addConnectedCheck(this.handleCustomCommandSubmit);
     this.handleChannelSwitch = this.handleChannelSwitch.bind(this);
-    this.handleTransferSwitchToggle = this.addUnitCheck(this.addConnectedCheck(this.handleTransferSwitchToggle));
+    this.handleTransferSwitchToggle = this.addChannelCheck(this.addConnectedCheck(this.handleTransferSwitchToggle));
+    this.handleFilterBankStateSwitch = this.addChannelCheck(this.addConnectedCheck(this.handleFilterBankStateSwitch));
+    this.handleFilterBankIndClick = this.addChannelCheck(this.addConnectedCheck(this.handleFilterBankIndClick));
+    this.handleAutoAttClick = this.addChannelCheck(this.addConnectedCheck(this.handleAutoAttClick));
+    this.handleAttChange = this.addChannelCheck(this.addConnectedCheck(this.handleAttChange));
+    this.handleBlankingSwitchToggle = this.addChannelCheck(this.addConnectedCheck(this.handleBlankingSwitchToggle));
+    this.handleBlankingReadClick = this.addChannelCheck(this.addConnectedCheck(this.handleBlankingReadClick));
+    this.handleBlankingWriteClick = this.addChannelCheck(this.addConnectedCheck(this.handleBlankingWriteClick));
+    this.handleBlankingChange = this.handleBlankingChange.bind(this);
   }
 
   async componentDidMount() {
@@ -139,10 +83,10 @@ export default class extends Component {
     };
   }
 
-  addUnitCheck(func) {
+  addChannelCheck(func) {
     return (...args) => {
-      const { unit } = this.state;
-      if (unit) func.apply(this, args);
+      const { channel } = this.state;
+      if (channel) func.apply(this, args);
     };
   }
 
@@ -173,9 +117,23 @@ export default class extends Component {
     this.setStateFocusCommandInput({ response, customCommand: '' });
   }
 
-  handleChannelSwitch({ target: { value } }) {
-    const { unit } = this.state;
-    if (unit) this.setStateFocusCommandInput({ channel: +value });
+  async handleChannelSwitch({ target: { value } }) {
+    const { unit, channel, transferSwitchToggled, filterBankState, attValue, blankingSwitchToggled } = this.state;
+    if (!unit || channel === +value) return;
+    const resets = [];
+    if (transferSwitchToggled) resets.push(get('/api/transfer_switch', { params: { channel, on: 0 } }));
+    if (filterBankState) resets.push(post('/api/filter_bank/mode', { channel, mode: 'break' }));
+    if (attValue !== 'Auto') resets.push(post('/api/automatic_attenuation', { channel }));
+    if (blankingSwitchToggled) resets.push(post('/api/blanking', { channel, on: 0 }));
+    await Promise.all(resets);
+    this.setStateFocusCommandInput({
+      channel: +value,
+      transferSwitchToggled: false,
+      filterBankState: '',
+      attValue: 'Auto',
+      blankingSwitchToggled: false,
+      blankingValue: '',
+    });
   }
 
   async handleTemperatureClick() {
@@ -187,52 +145,151 @@ export default class extends Component {
 
   async handleTransferSwitchToggle() {
     const { channel, transferSwitchToggled } = this.state;
+    const that = this;
+    await get('/api/transfer_switch', { params: { channel, on: +!transferSwitchToggled } }).then(
+      ({ data: { status: response } }) =>
+        that.setStateFocusCommandInput({ response, transferSwitchToggled: !transferSwitchToggled })
+    );
+  }
+
+  async handleFilterBankStateSwitch({ target: { value: mode } }) {
+    const { channel } = this.state;
+    try {
+      await post('/api/filter_bank/mode', { channel, mode });
+      this.setStateFocusCommandInput({ response: `Filter Bank Mode Set: ${mode}`, filterBankState: mode });
+    } catch (e) {
+      this.setStateFocusCommandInput({ response: 'Failed' });
+    }
+  }
+
+  async handleFilterBankIndClick() {
+    const { channel } = this.state;
     const {
       data: { status: response },
-    } = await get('/api/transfer_switch', { params: { channel, on: +!transferSwitchToggled } });
-    this.setStateFocusCommandInput({ response, transferSwitchToggled: !transferSwitchToggled });
+    } = await get('/api/filter_bank/indicator', { params: { channel } });
+    this.setStateFocusCommandInput({ response });
+  }
+
+  async handleAutoAttClick() {
+    const { channel } = this.state;
+    try {
+      await post('/api/automatic_attenuation', { channel });
+      this.setStateFocusCommandInput({ response: 'Attenuation Set to Auto', attValue: 'Auto' });
+    } catch (e) {
+      this.setStateFocusCommandInput({ response: 'Failed' });
+    }
+  }
+
+  async handleAttChange({ target: { value: level } }) {
+    if (level === '') {
+      this.setState({ attValue: level });
+      return;
+    }
+    const { channel } = this.state;
+    const levelInt = parseInt(level, 16);
+    if (levelInt && levelInt >= 1 && levelInt <= 13) {
+      try {
+        await post('/api/manual_attenuation', { channel, level });
+        this.setState({ response: `Attenuation Set: ${level}`, attValue: level });
+      } catch (e) {
+        this.setState({ response: 'Failed' });
+      }
+    }
+  }
+
+  async handleBlankingSwitchToggle() {
+    const { channel, blankingSwitchToggled } = this.state;
+    const that = this;
+    try {
+      await post('/api/blanking', { channel, on: +!blankingSwitchToggled }).then(() =>
+        that.setStateFocusCommandInput({
+          response: `Blanking ${!blankingSwitchToggled ? 'On' : 'Off'}`,
+          blankingSwitchToggled: !blankingSwitchToggled,
+        })
+      );
+    } catch (e) {
+      this.setStateFocusCommandInput({ response: 'Failed' });
+    }
+  }
+
+  async handleBlankingReadClick() {
+    const { channel } = this.state;
+    const {
+      data: { code },
+    } = await get('/api/blanking/code', { params: { channel } });
+    this.setStateFocusCommandInput({ response: `Blanking Code: ${code}` });
+  }
+
+  async handleBlankingWriteClick() {
+    const { channel, blankingValue: code } = this.state;
+    if (!code) return;
+    try {
+      await post('/api/blanking/code', { channel, code: '0'.repeat(2 - code.length) + code });
+      this.setStateFocusCommandInput({ response: `Blanking Code Written: ${code}` });
+    } catch (e) {
+      this.setStateFocusCommandInput({ response: 'Failed' });
+    }
+  }
+
+  handleBlankingChange({ target: { value: blankingValue } }) {
+    const blankingValueInt = parseInt(blankingValue, 16);
+    if (blankingValue === '' || (blankingValueInt && blankingValueInt >= 0 && blankingValueInt <= 175))
+      this.setState({ blankingValue });
   }
 
   render() {
-    const { channel, unit, customCommand, response, transferSwitchToggled } = this.state;
+    const {
+      channel,
+      unit,
+      customCommand,
+      response,
+      transferSwitchToggled,
+      filterBankState,
+      attValue,
+      blankingSwitchToggled,
+      blankingValue,
+    } = this.state;
 
     return (
       <Fragment>
-        <UnitForm onSubmit={e => e.preventDefault()}>
-          <UnitNumberLabel>Unit #:</UnitNumberLabel>
-          <UnitNumber type="number" min="0" value={unit} onChange={this.handleUnitNumberChange} />
-        </UnitForm>
-        <ProgramTitle>XF05 Communication</ProgramTitle>
-        <Reconnect type="submit" onClick={this.connect}>
-          Connect
-        </Reconnect>
-        <CheckConnection type="submit" onClick={this.handleCheckCommunication}>
-          Check Communication
-        </CheckConnection>
-        <CustomCommandSubmit type="submit" onClick={this.handleCustomCommandSubmit}>
-          Send
-        </CustomCommandSubmit>
-        <CustomCommand
-          id="command-input"
-          value={customCommand}
-          onChange={this.handleCustomCommandChange}
-          onKeyPress={({ charCode }) => (charCode === 13 ? this.handleCustomCommandSubmit() : null)}
+        <Header
+          channel={channel}
+          unit={unit}
+          customCommand={customCommand}
+          response={response}
+          handleUnitNumberChange={this.handleUnitNumberChange}
+          connect={this.connect}
+          handleCheckCommunication={this.handleCheckCommunication}
+          handleCustomCommandSubmit={this.handleCustomCommandSubmit}
+          handleCustomCommandChange={this.handleCustomCommandChange}
+          handleTemperatureClick={this.handleTemperatureClick}
+          handleChannelSwitch={this.handleChannelSwitch}
         />
-        <Temperature type="submit" onClick={this.handleTemperatureClick}>
-          Temperature
-        </Temperature>
         <br />
-        {[1, 2, 3, 4, 5].map(num => (
-          <Fragment key={num}>
-            <ChannelText>Channel {num}</ChannelText>
-            <ChannelRadio type="radio" checked={channel === num} onChange={this.handleChannelSwitch} value={num} />
-          </Fragment>
-        ))}
-        <ResponseContainer>
-          <Response>{response}</Response>
-        </ResponseContainer>
-        <br />
-        <ToggleSwitch toggled={transferSwitchToggled} onToggle={this.handleTransferSwitchToggle} />
+        <Container>
+          <TransferSwitch
+            transferSwitchToggled={transferSwitchToggled}
+            handleTransferSwitchToggle={this.handleTransferSwitchToggle}
+          />
+          <FilterBank
+            filterBankState={filterBankState}
+            handleFilterBankIndClick={this.handleFilterBankIndClick}
+            handleFilterBankStateSwitch={this.handleFilterBankStateSwitch}
+          />
+          <Attenuation
+            handleAutoAttClick={this.handleAutoAttClick}
+            attValue={attValue}
+            handleAttChange={this.handleAttChange}
+          />
+          <Blanking
+            blankingSwitchToggled={blankingSwitchToggled}
+            handleBlankingSwitchToggle={this.handleBlankingSwitchToggle}
+            handleBlankingReadClick={this.handleBlankingReadClick}
+            handleBlankingWriteClick={this.handleBlankingWriteClick}
+            blankingValue={blankingValue}
+            handleBlankingChange={this.handleBlankingChange}
+          />
+        </Container>
       </Fragment>
     );
   }

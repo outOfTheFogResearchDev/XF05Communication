@@ -3,8 +3,11 @@ import styled from 'styled-components';
 
 // Styled components
 const ToggleSwitchWrapper = styled.div`
+  gird-area: switch;
   display: flex;
   flex-direction: column;
+  justify-self: center;
+  align-self: center;
 `;
 
 const Toggle = styled.div`
@@ -66,19 +69,14 @@ const ToggleSwitch = props => {
   );
 };
 
-// Default colors
-const green = '#22e222';
-const lightGrey = '#f5f5f5';
-const grey = '#ddd';
-
 ToggleSwitch.defaultProps = {
   width: 80,
   padding: 3,
-  ballColor: '#fff',
-  ballColorActive: lightGrey,
-  bgToggled: green,
-  bgClear: '#8b0000',
-  borderColor: grey,
+  ballColor: '#ddd',
+  ballColorActive: '#222',
+  bgToggled: '#6f2da8',
+  bgClear: '#0e4c92',
+  borderColor: '#fff',
 };
 
 export default ToggleSwitch;
