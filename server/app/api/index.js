@@ -89,6 +89,12 @@ api.post('/manual_attenuation', async (req, res) => {
   res.sendStatus(success ? 201 : 400);
 });
 
+api.post('/automatic_attenuation', async (req, res) => {
+  const { channel } = req.body;
+  const success = await port.writeCommand(`5A0${channel}0`, successParser);
+  res.sendStatus(success ? 201 : 400);
+});
+
 api
   .route('/msfb_switch')
   .post(async (req, res) => {
