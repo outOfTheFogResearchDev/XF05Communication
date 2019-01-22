@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 
-// Styled components
 const ToggleSwitchWrapper = styled.div`
   gird-area: switch;
   display: flex;

@@ -19,6 +19,7 @@ module.exports = portName => {
     if (indexOfClose === -1) return;
     const data = response.slice(1, indexOfClose);
     response = response.slice(indexOfClose + 1);
+    console.log(data); // eslint-disable-line no-console
     if (data === 'Power RESET') return;
     if (data.length > 5) {
       callback(data);
@@ -41,9 +42,12 @@ module.exports = portName => {
   });
 
   port.writeCommand = (command, parser) =>
+    command.length === 5
       ? new Promise(resolve => {
           callback = data => resolve(parser(data, command));
           port.write(`{${command}}`);
         })
       : null;
 
+  return port;
+};
