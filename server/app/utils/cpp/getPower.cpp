@@ -6,7 +6,6 @@ using namespace v8;
 void setAnalyzer(const FunctionCallbackInfo<Value> &args)
 {
     Isolate *isolate = args.GetIsolate();
-    int frequency = args[0].As<Number>()->Value();
 
     //* C++ starts here
 

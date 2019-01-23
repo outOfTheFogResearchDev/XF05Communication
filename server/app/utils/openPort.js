@@ -41,7 +41,7 @@ module.exports = portName => {
     handleData();
   });
 
-  port.writeCommand = (command, parser) =>
+  port.writeCommand = (command, parser = data => data) =>
     command.length === 5
       ? new Promise(resolve => {
           callback = data => resolve(parser(data, command));
