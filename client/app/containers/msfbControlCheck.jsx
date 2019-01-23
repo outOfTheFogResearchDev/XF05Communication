@@ -4,11 +4,12 @@ import BandTwoCheck from './components/bandTwoCheck';
 import BandThreeCheck from './components/bandThreeCheck';
 
 const Container = styled.div`
+  grid-area: msfb;
   display: grid;
   grid:
     'title title'
     'band-two-check band-three-check';
-  margin: 15px 5px;
+  margin-left: 5px;
   width: 475px;
   padding: 10px 10px;
   border-style: solid;
@@ -23,29 +24,10 @@ const Title = styled.h2`
 `;
 
 /* eslint-disable react/prop-types */
-export default ({
-  bandTwoSwitchToggled,
-  handleBandTwoCheckSwitchToggle,
-  handleBandTwoCheckAttOnClick,
-  handleBandTwoCheckAttOffClick,
-  bandThreeSwitchToggled,
-  handleBandThreeCheckSwitchToggle,
-  bandThreeCheckRadioState,
-  handleBandThreeCheckRadioChange,
-}) => (
+export default props => (
   <Container>
     <Title>MSFB Wiring / Control Check</Title>
-    <BandTwoCheck
-      bandTwoSwitchToggled={bandTwoSwitchToggled}
-      handleBandTwoCheckSwitchToggle={handleBandTwoCheckSwitchToggle}
-      handleBandTwoCheckAttOnClick={handleBandTwoCheckAttOnClick}
-      handleBandTwoCheckAttOffClick={handleBandTwoCheckAttOffClick}
-    />
-    <BandThreeCheck
-      bandThreeSwitchToggled={bandThreeSwitchToggled}
-      handleBandThreeCheckSwitchToggle={handleBandThreeCheckSwitchToggle}
-      bandThreeCheckRadioState={bandThreeCheckRadioState}
-      handleBandThreeCheckRadioChange={handleBandThreeCheckRadioChange}
-    />
+    <BandTwoCheck {...props} />
+    <BandThreeCheck {...props} />
   </Container>
 );

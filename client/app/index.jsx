@@ -1,8 +1,16 @@
 import React, { Fragment, Component } from 'react';
 import { get, post } from 'axios';
+import styled from 'styled-components';
 import Header from './containers/header';
 import WiringControlCheck from './containers/wiringControlCheck';
 import MSFBControlCheck from './containers/msfbControlCheck';
+
+const Container = styled.div`
+  display: grid;
+  grid:
+    'wiring'
+    'msfb';
+`;
 
 const resolveSyncronously = async pArray => {
   await pArray.pop()();
@@ -123,6 +131,8 @@ export default class extends Component {
       filterBankState,
       attValue,
       blankingSwitchToggled,
+      bandTwoSwitchToggled,
+      bandThreeSwitchToggled,
       bandThreeCheckRadioState,
     } = this.state;
     if (!unit || channel === +value) return;
@@ -132,7 +142,12 @@ export default class extends Component {
     if (attValue !== 'Auto') resets.push(() => post('/api/automatic_attenuation', { channel }));
     if (blankingSwitchToggled) resets.push(() => post('/api/blanking', { channel, on: 0 }));
     if (bandThreeCheckRadioState) resets.push(() => get('/api/msfb_switch/filter', { params: { filter: 0 } }));
-    await resolveSyncronously(resets);
+    if (channel !== 2 && bandTwoSwitchToggled)
+      resets.push(() => get('/api/transfer_switch', { params: { channel: 2, on: 0 } }));
+    if (channel !== 3 && bandThreeSwitchToggled)
+      resets.push(() => get('/api/transfer_switch', { params: { channel: 3, on: 0 } }));
+
+    if (resets.length) await resolveSyncronously(resets);
     this.setStateFocusCommandInput({
       channel: +value,
       transferSwitchToggled: false,
@@ -141,6 +156,7 @@ export default class extends Component {
       blankingSwitchToggled: false,
       blankingValue: '',
       bandTwoSwitchToggled: false,
+      bandThreeSwitchToggled: false,
       bandThreeCheckRadioState: '',
     });
   }
@@ -301,7 +317,13 @@ export default class extends Component {
     const {
       data: { status },
     } = await get('/api/msfb_switch/filter', { params: { filter: value } });
-    // HERE
+    const that = this;
+    await get('/api/msfb_switch/indicator').then(({ data: { indicator } }) =>
+      that.setStateFocusCommandInput({
+        response: `${status} ${indicator}`,
+        bandThreeCheckRadioState: value,
+      })
+    );
   }
 
   render() {
@@ -336,32 +358,34 @@ export default class extends Component {
           handleChannelSwitch={this.handleChannelSwitch}
         />
         <br />
-        <WiringControlCheck
-          transferSwitchToggled={transferSwitchToggled}
-          handleTransferSwitchToggle={this.handleTransferSwitchToggle}
-          filterBankState={filterBankState}
-          handleFilterBankIndClick={this.handleFilterBankIndClick}
-          handleFilterBankStateSwitch={this.handleFilterBankStateSwitch}
-          handleAutoAttClick={this.handleAutoAttClick}
-          attValue={attValue}
-          handleAttChange={this.handleAttChange}
-          blankingSwitchToggled={blankingSwitchToggled}
-          handleBlankingSwitchToggle={this.handleBlankingSwitchToggle}
-          handleBlankingReadClick={this.handleBlankingReadClick}
-          handleBlankingWriteClick={this.handleBlankingWriteClick}
-          blankingValue={blankingValue}
-          handleBlankingChange={this.handleBlankingChange}
-        />
-        <MSFBControlCheck
-          bandTwoSwitchToggled={bandTwoSwitchToggled}
-          handleBandTwoCheckSwitchToggle={this.handleBandTwoCheckSwitchToggle}
-          handleBandTwoCheckAttOnClick={this.handleBandTwoCheckAttOnClick}
-          handleBandTwoCheckAttOffClick={this.handleBandTwoCheckAttOffClick}
-          bandThreeSwitchToggled={bandThreeSwitchToggled}
-          handleBandThreeCheckSwitchToggle={this.handleBandThreeCheckSwitchToggle}
-          bandThreeCheckRadioState={bandThreeCheckRadioState}
-          handleBandThreeCheckRadioChange={this.handleBandThreeCheckRadioChange}
-        />
+        <Container>
+          <WiringControlCheck
+            transferSwitchToggled={transferSwitchToggled}
+            handleTransferSwitchToggle={this.handleTransferSwitchToggle}
+            filterBankState={filterBankState}
+            handleFilterBankIndClick={this.handleFilterBankIndClick}
+            handleFilterBankStateSwitch={this.handleFilterBankStateSwitch}
+            handleAutoAttClick={this.handleAutoAttClick}
+            attValue={attValue}
+            handleAttChange={this.handleAttChange}
+            blankingSwitchToggled={blankingSwitchToggled}
+            handleBlankingSwitchToggle={this.handleBlankingSwitchToggle}
+            handleBlankingReadClick={this.handleBlankingReadClick}
+            handleBlankingWriteClick={this.handleBlankingWriteClick}
+            blankingValue={blankingValue}
+            handleBlankingChange={this.handleBlankingChange}
+          />
+          <MSFBControlCheck
+            bandTwoSwitchToggled={bandTwoSwitchToggled}
+            handleBandTwoCheckSwitchToggle={this.handleBandTwoCheckSwitchToggle}
+            handleBandTwoCheckAttOnClick={this.handleBandTwoCheckAttOnClick}
+            handleBandTwoCheckAttOffClick={this.handleBandTwoCheckAttOffClick}
+            bandThreeSwitchToggled={bandThreeSwitchToggled}
+            handleBandThreeCheckSwitchToggle={this.handleBandThreeCheckSwitchToggle}
+            bandThreeCheckRadioState={bandThreeCheckRadioState}
+            handleBandThreeCheckRadioChange={this.handleBandThreeCheckRadioChange}
+          />
+        </Container>
       </Fragment>
     );
   }
