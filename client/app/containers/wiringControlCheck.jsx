@@ -6,6 +6,7 @@ import Attenuation from './components/attenuation';
 import Blanking from './components/blanking';
 
 const Container = styled.div`
+  grid-area: wiring;
   display: grid;
   grid:
     'title title'
@@ -26,41 +27,12 @@ const Title = styled.h2`
 `;
 
 /* eslint-disable react/prop-types */
-export default ({
-  transferSwitchToggled,
-  handleTransferSwitchToggle,
-  filterBankState,
-  handleFilterBankIndClick,
-  handleFilterBankStateSwitch,
-  handleAutoAttClick,
-  attValue,
-  handleAttChange,
-  blankingSwitchToggled,
-  handleBlankingSwitchToggle,
-  handleBlankingReadClick,
-  handleBlankingWriteClick,
-  blankingValue,
-  handleBlankingChange,
-}) => (
+export default props => (
   <Container>
     <Title>Wiring / Control Check</Title>
-    <TransferSwitch
-      transferSwitchToggled={transferSwitchToggled}
-      handleTransferSwitchToggle={handleTransferSwitchToggle}
-    />
-    <FilterBank
-      filterBankState={filterBankState}
-      handleFilterBankIndClick={handleFilterBankIndClick}
-      handleFilterBankStateSwitch={handleFilterBankStateSwitch}
-    />
-    <Attenuation handleAutoAttClick={handleAutoAttClick} attValue={attValue} handleAttChange={handleAttChange} />
-    <Blanking
-      blankingSwitchToggled={blankingSwitchToggled}
-      handleBlankingSwitchToggle={handleBlankingSwitchToggle}
-      handleBlankingReadClick={handleBlankingReadClick}
-      handleBlankingWriteClick={handleBlankingWriteClick}
-      blankingValue={blankingValue}
-      handleBlankingChange={handleBlankingChange}
-    />
+    <TransferSwitch {...props} />
+    <FilterBank {...props} />
+    <Attenuation {...props} />
+    <Blanking {...props} />
   </Container>
 );

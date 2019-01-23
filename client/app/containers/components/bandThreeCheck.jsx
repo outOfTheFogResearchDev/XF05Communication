@@ -10,7 +10,7 @@ const Container = styled.div`
     'three four both neither';
   border-color: '#000';
   border-style: double;
-  width: 200px;
+  width: 250px;
   height: 120px;
   justify-self: center;
   align-self: center;
@@ -48,12 +48,9 @@ const NeitherContainer = styled.div`
   grid-area: neither;
 `;
 
-const Text = styled.label`
-  display: inline-block;
-`;
+const Text = styled.label``;
 
 const Radio = styled.input`
-  display: inline-block;
   margin-left: 5px;
   transform: scale(1.25);
 `;
@@ -63,14 +60,13 @@ const SwitchLabelOff = styled.p`
   justify-self: end;
   align-self: center;
   font-size: 75%;
-  margin-right: 3px;
+  margin-right: 2px;
 `;
 
 const SwitchLabelOn = styled.p`
   grid-area: on;
   align-self: center;
   font-size: 75%;
-  margin-right: 5px;
 `;
 
 /* eslint-disable react/prop-types */
@@ -89,18 +85,18 @@ export default ({
       <Text>3</Text>
       <Radio
         type="radio"
-        checked={bandThreeCheckRadioState === 'three'}
+        checked={bandThreeCheckRadioState === '3'}
         onChange={handleBandThreeCheckRadioChange}
-        value="three"
+        value="3"
       />
     </ThreeContainer>
     <FourContainer>
       <Text>4</Text>
       <Radio
         type="radio"
-        checked={bandThreeCheckRadioState === 'four'}
+        checked={bandThreeCheckRadioState === '4'}
         onChange={handleBandThreeCheckRadioChange}
-        value="four"
+        value="4"
       />
     </FourContainer>
     <BothContainer>
@@ -113,7 +109,7 @@ export default ({
       />
     </BothContainer>
     <NeitherContainer>
-      <Text>3</Text>
+      <Text>Pass</Text>
       <Radio
         type="radio"
         checked={bandThreeCheckRadioState === 'neither'}
