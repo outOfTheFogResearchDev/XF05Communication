@@ -78,7 +78,7 @@ const ResponseContainer = styled.div`
   float: right;
   margin-right: 10px;
   width: 411px;
-  border: 2px solid grey;
+  border: 2px solid black;
   text-align: center;
 `;
 
@@ -86,7 +86,54 @@ const Response = styled.span`
   font-size: 300%;
 `;
 
+const BlankingCodeTable = styled.table`
+  border: 1px solid grey;
+  border-collapse: collapse;
+  margin: 10px 10px;
+  width: 95%;
+`;
+
+const BlankingCodeTableHeaders = styled.th`
+  font-size: 50%;
+  border: 1px solid grey;
+`;
+
+const State = styled.td`
+  border: 1px solid grey;
+`;
+
+const Target = styled.td`
+  border: 1px solid grey;
+`;
+
+const Actual = styled.td`
+  border: 1px solid grey;
+`;
+
+const Code = styled.td`
+  border: 1px solid grey;
+`;
+
 /* eslint-disable react/prop-types */
+const ParseBlankingCodes = ({ response }) => {
+  const [state, target, actual] = response.split('|');
+  const [[actualL, codeL], [actualH, codeH]] = actual.split('/').map(value => value.split(':'));
+  return (
+    <Fragment>
+      <tr>
+        <State rowSpan="2">{state}</State>
+        <Target rowSpan="2">{target}</Target>
+        <Actual>{actualL}</Actual>
+        <Code>{codeL}</Code>
+      </tr>
+      <tr>
+        <Actual>{actualH}</Actual>
+        <Code>{codeH}</Code>
+      </tr>
+    </Fragment>
+  );
+};
+
 export default ({
   channel,
   unit,
@@ -132,7 +179,26 @@ export default ({
       </Fragment>
     ))}
     <ResponseContainer>
-      <Response>{response}</Response>
+      <Response>
+        {response.charAt(0) === '#' ? (
+          <BlankingCodeTable>
+            <tr>
+              <BlankingCodeTableHeaders>State</BlankingCodeTableHeaders>
+              <BlankingCodeTableHeaders>Target</BlankingCodeTableHeaders>
+              <BlankingCodeTableHeaders>Actual</BlankingCodeTableHeaders>
+              <BlankingCodeTableHeaders>Code</BlankingCodeTableHeaders>
+            </tr>
+            {response
+              .substring(2)
+              .split('_')
+              .map(line => (
+                <ParseBlankingCodes response={line} />
+              ))}
+          </BlankingCodeTable>
+        ) : (
+          response
+        )}
+      </Response>
     </ResponseContainer>
   </Fragment>
 );

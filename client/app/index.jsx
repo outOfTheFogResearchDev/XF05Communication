@@ -8,8 +8,8 @@ import MSFBControlCheck from './containers/msfbControlCheck';
 const Container = styled.div`
   display: grid;
   grid:
-    'wiring'
-    'msfb';
+    'wiring blanking'
+    'msfb .';
 `;
 
 const resolveSyncronously = async pArray => {
@@ -43,20 +43,21 @@ export default class extends Component {
     this.handleCustomCommandChange = this.handleCustomCommandChange.bind(this);
     this.handleCustomCommandSubmit = this.addConnectedCheck(this.handleCustomCommandSubmit);
     this.handleChannelSwitch = this.handleChannelSwitch.bind(this);
-    this.handleTransferSwitchToggle = this.addChannelCheck(this.addConnectedCheck(this.handleTransferSwitchToggle));
-    this.handleFilterBankStateSwitch = this.addChannelCheck(this.addConnectedCheck(this.handleFilterBankStateSwitch));
-    this.handleFilterBankIndClick = this.addChannelCheck(this.addConnectedCheck(this.handleFilterBankIndClick));
-    this.handleAutoAttClick = this.addChannelCheck(this.addConnectedCheck(this.handleAutoAttClick));
-    this.handleAttChange = this.addChannelCheck(this.addConnectedCheck(this.handleAttChange));
-    this.handleBlankingSwitchToggle = this.addChannelCheck(this.addConnectedCheck(this.handleBlankingSwitchToggle));
-    this.handleBlankingReadClick = this.addChannelCheck(this.addConnectedCheck(this.handleBlankingReadClick));
-    this.handleBlankingWriteClick = this.addChannelCheck(this.addConnectedCheck(this.handleBlankingWriteClick));
+    this.handleTransferSwitchToggle = this.addConnectedCheck(this.addChannelCheck(this.handleTransferSwitchToggle));
+    this.handleFilterBankStateSwitch = this.addConnectedCheck(this.addChannelCheck(this.handleFilterBankStateSwitch));
+    this.handleFilterBankIndClick = this.addConnectedCheck(this.addChannelCheck(this.handleFilterBankIndClick));
+    this.handleAutoAttClick = this.addConnectedCheck(this.addChannelCheck(this.handleAutoAttClick));
+    this.handleAttChange = this.addConnectedCheck(this.addChannelCheck(this.handleAttChange));
+    this.handleBlankingSwitchToggle = this.addConnectedCheck(this.addChannelCheck(this.handleBlankingSwitchToggle));
+    this.handleBlankingReadClick = this.addConnectedCheck(this.addChannelCheck(this.handleBlankingReadClick));
+    this.handleBlankingWriteClick = this.addConnectedCheck(this.addChannelCheck(this.handleBlankingWriteClick));
     this.handleBlankingChange = this.handleBlankingChange.bind(this);
     this.handleBandTwoCheckSwitchToggle = this.addConnectedCheck(this.handleBandTwoCheckSwitchToggle);
     this.handleBandTwoCheckAttOnClick = this.addConnectedCheck(this.handleBandTwoCheckAttOnClick);
     this.handleBandTwoCheckAttOffClick = this.addConnectedCheck(this.handleBandTwoCheckAttOffClick);
     this.handleBandThreeCheckSwitchToggle = this.addConnectedCheck(this.handleBandThreeCheckSwitchToggle);
     this.handleBandThreeCheckRadioChange = this.addConnectedCheck(this.handleBandThreeCheckRadioChange);
+    this.handleAutomaticBlankingCodesClick = this.addChannelCheck(this.handleAutomaticBlankingCodesClick);
   }
 
   async componentDidMount() {
@@ -65,6 +66,21 @@ export default class extends Component {
 
   setStateFocusCommandInput(state) {
     this.setState(state, () => document.getElementById('command-input').focus());
+  }
+
+  async getBlankingCodes() {
+    const { unit, channel } = this.state;
+    const {
+      data: { codes },
+    } = await get('/api/blanking/history', { params: { unit, channel } });
+    this.displayBlankingCodes(codes);
+  }
+
+  async getAllBlankingCodes() {
+    const { unit } = this.state;
+    const {
+      data: { codes },
+    } = await get('/api/blanking/full_history', { params: { unit } });
   }
 
   async connect() {
@@ -326,6 +342,35 @@ export default class extends Component {
     );
   }
 
+  displayBlankingCodes(codes) {
+    this.setStateFocusCommandInput({
+      response: `#${Object.entries(codes)
+        .sort(([a], [b]) => +a - +b)
+        .reduce(
+          (
+            response,
+            [
+              target,
+              {
+                high: [highCode, highdBm],
+                low: [lowCode, lowdBm],
+              },
+            ],
+            i
+          ) => `${response}_${i}|${target}|${lowdBm}:${lowCode}/${highdBm}:${highCode}`,
+          ''
+        )}`,
+    });
+  }
+
+  async handleAutomaticBlankingCodesClick() {
+    const { unit, channel } = this.state;
+    const {
+      data: { codes },
+    } = await get('/api/blanking/automatic_algorithm', { params: { unit, channel } });
+    this.displayBlankingCodes(codes);
+  }
+
   render() {
     const {
       channel,
@@ -375,6 +420,9 @@ export default class extends Component {
             blankingValue={blankingValue}
             handleBlankingChange={this.handleBlankingChange}
           />
+          <button style={{ gridArea: 'blanking' }} type="submit" onClick={this.handleAutomaticBlankingCodesClick}>
+            test
+          </button>
           <MSFBControlCheck
             bandTwoSwitchToggled={bandTwoSwitchToggled}
             handleBandTwoCheckSwitchToggle={this.handleBandTwoCheckSwitchToggle}

@@ -9,6 +9,8 @@ const {
   msfbSwitchParser,
   msfbFilterCheckParser,
 } = require('../utils/prasers');
+const automaticBlankingCodes = require('../algorithms/automaticBlankingCodes');
+const { getCodeHistory, getAllCodeHistory, storeCodeHistory } = require('../utils/csv');
 
 const api = Router();
 
@@ -49,6 +51,31 @@ blanking
     const success = await port.connection.writeCommand(`DW${channel}${code.toUpperCase()}`, successParser);
     res.sendStatus(success ? 201 : 400);
   });
+
+blanking.get('/automatic_algorithm', async (req, res) => {
+  const { unit, channel } = req.query;
+  // const codes = await automaticBlankingCodes(channel);
+  const codes = {
+    '4.4': { high: ['90', 4.7], low: ['8F', 4.2] },
+    '-0.6': { high: ['88', -0.3], low: ['87', -0.9] },
+    '-5.6': { high: ['80', -5.2], low: ['7F', -5.8] },
+    '-10.6': { high: ['77', -10], low: ['76', -11.2] },
+  };
+  await storeCodeHistory(unit, channel, codes);
+  res.status(200).send({ codes });
+});
+
+blanking.get('/history', async (req, res) => {
+  const { unit, channel } = req.query;
+  const codes = await getCodeHistory(unit, channel);
+  res.status(200).send({ codes });
+});
+
+blanking.get('/full_history', async (req, res) => {
+  const { unit } = req.query;
+  const codes = await getAllCodeHistory(unit);
+  res.status(200).send({ codes });
+});
 
 api.use('/blanking', blanking);
 
