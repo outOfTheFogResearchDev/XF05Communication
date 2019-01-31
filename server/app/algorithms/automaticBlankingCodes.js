@@ -22,7 +22,7 @@ const setUp = async ch => {
   results = {};
   await setAnalyzer(frequency);
   await setRefLevel(10);
-  await setPower(frequency, -25);
+  await setPower(frequency, -15);
   port.connection.writeCommand(`BE${channel}10`);
   await new Promise(resolve => setTimeout(resolve, 200));
   await setBlanking(170);
@@ -42,18 +42,23 @@ const setDown = async () => {
 };
 
 const setOutput = async () => {
+  await setBlanking(170);
   await setPower(frequency, target - 20);
   await new Promise(resolve => setTimeout(resolve, 10));
   const power = await getPower();
   const difference = target - power;
   input = target - 20 + difference;
-  await setPower(frequency, target - 20 + difference);
+  if (input > 0) {
+    await rfOff();
+    throw new Error(`Error with blanking: Blanked at code AA`);
+  }
+  await setPower(frequency, input);
 };
 
 const findBlankingPower = async (power, type) => {
   await setPower(frequency, power);
   const check = await getPower();
-  if (check > -15) {
+  if (check > -40) {
     if (check - target > 1.5) results[target][type][1] = '> 1.5';
     else {
       results[target][type][1] = check;
@@ -65,23 +70,32 @@ const findBlankingPower = async (power, type) => {
 const findBlankingValues = async () => {
   results[target].low = [code.toString(16).toUpperCase()];
   await setBlanking(170);
-  await setPower(frequency, input - 2);
+  await setPower(frequency, input - 4);
   await setBlanking(code);
-  await findBlankingPower(input - 1.9, 'low');
+  await findBlankingPower(input - 3.9, 'low');
 
-  if (results[target].low[1] > target) {
+  if (results[target].low[1] >= target) {
     results[target].high = results[target].low.slice();
     code -= 1;
     results[target].low = [code.toString(16).toUpperCase()];
     await setBlanking(170);
-    await setPower(frequency, input - 3);
+    await setPower(frequency, input - 4);
     await setBlanking(code);
-    await findBlankingPower(input - 2.9, 'low');
+    await findBlankingPower(input - 3.9, 'low');
   } else {
     results[target].high = [(code + 1).toString(16).toUpperCase()];
     await setBlanking(170);
+    await setPower(frequency, input - 4);
     await setBlanking(code + 1);
-    await findBlankingPower(input + 0.1, 'high');
+    await findBlankingPower(input - 3.9, 'high');
+    if (results[target].high[1] < target) {
+      if (code >= 166) {
+        await rfOff();
+        throw new Error(`Error with blanking: Bid not blank at a6`);
+      }
+      code += 1;
+      await findBlankingValues();
+    }
   }
 };
 

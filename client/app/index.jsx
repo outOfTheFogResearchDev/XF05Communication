@@ -1,15 +1,34 @@
 import React, { Fragment, Component } from 'react';
 import { get, post } from 'axios';
 import styled from 'styled-components';
+import PrintTable from './containers/printTable';
 import Header from './containers/header';
 import WiringControlCheck from './containers/wiringControlCheck';
+import BlankingCodesCheck from './containers/blankingCodesCheck';
 import MSFBControlCheck from './containers/msfbControlCheck';
+
+const PrintTitle = styled.h1`
+  display: inline-block;
+  font-size: 100%;
+`;
+
+const PrintUnit = styled.h1`
+  display: inline-block;
+  font-size: 100%;
+  margin-left: 340px;
+`;
+
+const PrintDate = styled.h1`
+  display: inline-block;
+  font-size: 100%;
+  float: right;
+`;
 
 const Container = styled.div`
   display: grid;
   grid:
-    'wiring blanking'
-    'msfb .';
+    'wiring .'
+    'msfb blanking';
 `;
 
 const resolveSyncronously = async pArray => {
@@ -34,8 +53,12 @@ export default class extends Component {
       bandTwoSwitchToggled: false,
       bandThreeSwitchToggled: false,
       bandThreeCheckRadioState: '',
+      printCodes: [],
+      printing: false,
     };
 
+    this.getBlankingCodes = this.getBlankingCodes.bind(this);
+    this.togglePrint = this.togglePrint.bind(this);
     this.connect = this.connect.bind(this);
     this.handleUnitNumberChange = this.handleUnitNumberChange.bind(this);
     this.handleCheckCommunication = this.addConnectedCheck(this.handleCheckCommunication);
@@ -64,6 +87,13 @@ export default class extends Component {
     await this.connect();
   }
 
+  componentDidUpdate() {
+    const { printing } = this.state;
+    if (printing) {
+      this.print();
+    }
+  }
+
   setStateFocusCommandInput(state) {
     this.setState(state, () => document.getElementById('command-input').focus());
   }
@@ -71,16 +101,31 @@ export default class extends Component {
   async getBlankingCodes() {
     const { unit, channel } = this.state;
     const {
-      data: { codes },
+      data: { codes, temperature },
     } = await get('/api/blanking/history', { params: { unit, channel } });
-    this.displayBlankingCodes(codes);
+    this.displayBlankingCodes(codes, temperature);
   }
 
-  async getAllBlankingCodes() {
-    const { unit } = this.state;
-    const {
-      data: { codes },
-    } = await get('/api/blanking/full_history', { params: { unit } });
+  print() {
+    window.print();
+    this.togglePrint();
+  }
+
+  async togglePrint() {
+    const { printing, unit } = this.state;
+    console.log('here');
+    if (unit) {
+      if (!printing) {
+        console.log('print me');
+        const {
+          data: { codes: printCodes },
+        } = await get('/api/blanking/full_history', { params: { unit } });
+        console.log(printCodes);
+        this.setState({ printing: true, printCodes });
+      } else {
+        this.setState({ printing: false, printCodes: [] });
+      }
+    }
   }
 
   async connect() {
@@ -342,9 +387,9 @@ export default class extends Component {
     );
   }
 
-  displayBlankingCodes(codes) {
+  displayBlankingCodes(codes, temperature) {
     this.setStateFocusCommandInput({
-      response: `#${Object.entries(codes)
+      response: `#T = ${temperature}°C#${Object.entries(codes)
         .sort(([a], [b]) => +a - +b)
         .reduce(
           (
@@ -365,10 +410,14 @@ export default class extends Component {
 
   async handleAutomaticBlankingCodesClick() {
     const { unit, channel } = this.state;
-    const {
-      data: { codes },
-    } = await get('/api/blanking/automatic_algorithm', { params: { unit, channel } });
-    this.displayBlankingCodes(codes);
+    try {
+      const {
+        data: { codes, temperature },
+      } = await get('/api/blanking/automatic_algorithm', { params: { unit, channel } });
+      this.displayBlankingCodes(codes, temperature);
+    } catch (e) {
+      this.setStateFocusCommandInput({ response: e.response.data.error.substring(7) });
+    }
   }
 
   render() {
@@ -385,8 +434,26 @@ export default class extends Component {
       bandTwoSwitchToggled,
       bandThreeSwitchToggled,
       bandThreeCheckRadioState,
+      printCodes,
+      printing,
     } = this.state;
 
+    //* printing view
+    if (printing) {
+      const today = new Date();
+      const date = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+      return (
+        <Fragment>
+          <PrintTitle>Blanking Codes</PrintTitle>
+          <PrintUnit>Unit # {unit}</PrintUnit>
+          <PrintDate>{date}</PrintDate>
+          <br />
+          <PrintTable codes={printCodes} />
+        </Fragment>
+      );
+    }
+
+    //* normal view
     return (
       <Fragment>
         <Header
@@ -420,9 +487,6 @@ export default class extends Component {
             blankingValue={blankingValue}
             handleBlankingChange={this.handleBlankingChange}
           />
-          <button style={{ gridArea: 'blanking' }} type="submit" onClick={this.handleAutomaticBlankingCodesClick}>
-            test
-          </button>
           <MSFBControlCheck
             bandTwoSwitchToggled={bandTwoSwitchToggled}
             handleBandTwoCheckSwitchToggle={this.handleBandTwoCheckSwitchToggle}
@@ -432,6 +496,11 @@ export default class extends Component {
             handleBandThreeCheckSwitchToggle={this.handleBandThreeCheckSwitchToggle}
             bandThreeCheckRadioState={bandThreeCheckRadioState}
             handleBandThreeCheckRadioChange={this.handleBandThreeCheckRadioChange}
+          />
+          <BlankingCodesCheck
+            handleAutomaticBlankingCodesClick={this.handleAutomaticBlankingCodesClick}
+            getBlankingCodes={this.getBlankingCodes}
+            togglePrint={this.togglePrint}
           />
         </Container>
       </Fragment>

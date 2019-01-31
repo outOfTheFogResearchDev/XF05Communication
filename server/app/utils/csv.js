@@ -31,16 +31,19 @@ const readCsv = async (unit, channel) => {
 
 const getCodeHistory = async (unit, channel) => {
   const csvArray = await readCsv(unit, channel);
-  return csvArray.reduce((obj, [target, highCode, highdBm, lowCode, lowdBm]) => {
-    const codes = obj;
-    codes[target] = { high: [highCode, highdBm], low: [lowCode, lowdBm] };
-    return codes;
-  }, {});
+  return {
+    temperature: csvArray.pop()[0],
+    codes: csvArray.reduce((obj, [target, highCode, highdBm, lowCode, lowdBm]) => {
+      const codes = obj;
+      codes[target] = { high: [highCode, highdBm], low: [lowCode, lowdBm] };
+      return codes;
+    }, {}),
+  };
 };
 
 const getAllCodeHistory = async unit => Promise.all([1, 2, 3, 4, 5].map(channel => getCodeHistory(unit, channel)));
 
-const storeCodeHistory = async (unit, channel, codes) => {
+const storeCodeHistory = async (unit, channel, codes, tempurature) => {
   const csvArray = Object.entries(codes).reduce(
     (
       csv,
@@ -57,6 +60,7 @@ const storeCodeHistory = async (unit, channel, codes) => {
     },
     []
   );
+  csvArray.push([tempurature, tempurature, tempurature, tempurature, tempurature]);
   await writeCsv(unit, channel, csvArray);
 };
 

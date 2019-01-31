@@ -54,21 +54,27 @@ blanking
 
 blanking.get('/automatic_algorithm', async (req, res) => {
   const { unit, channel } = req.query;
-  // const codes = await automaticBlankingCodes(channel);
-  const codes = {
-    '4.4': { high: ['90', 4.7], low: ['8F', 4.2] },
-    '-0.6': { high: ['88', -0.3], low: ['87', -0.9] },
-    '-5.6': { high: ['80', -5.2], low: ['7F', -5.8] },
-    '-10.6': { high: ['77', -10], low: ['76', -11.2] },
-  };
-  await storeCodeHistory(unit, channel, codes);
-  res.status(200).send({ codes });
+  try {
+    const codes = await automaticBlankingCodes(channel);
+    const temperature = await port.connection.writeCommand('TA000', tempParser);
+    // const codes = {
+    //   '4.4': { high: ['90', 4.7], low: ['8F', 4.2] },
+    //   '-0.6': { high: ['88', -0.3], low: ['87', -0.9] },
+    //   '-5.6': { high: ['80', -5.2], low: ['7F', -5.8] },
+    //   '-10.6': { high: ['77', -10], low: ['76', -11.2] },
+    // };
+    // const temperature = 34;
+    await storeCodeHistory(unit, channel, codes, temperature);
+    res.status(200).send({ codes, temperature });
+  } catch (e) {
+    res.status(400).send({ error: e.toString() });
+  }
 });
 
 blanking.get('/history', async (req, res) => {
   const { unit, channel } = req.query;
-  const codes = await getCodeHistory(unit, channel);
-  res.status(200).send({ codes });
+  const { codes, temperature } = await getCodeHistory(unit, channel);
+  res.status(200).send({ codes, temperature });
 });
 
 blanking.get('/full_history', async (req, res) => {

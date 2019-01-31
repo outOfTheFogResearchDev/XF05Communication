@@ -1,19 +1,20 @@
 import React from 'react';
 import styled from 'styled-components';
-import BandTwoCheck from './components/bandTwoCheck';
-import BandThreeCheck from './components/bandThreeCheck';
+import BlankingCodesButtons from './components/blankingCodesButtons';
 
 const Container = styled.div`
-  grid-area: msfb;
+  grid-area: blanking;
   display: grid;
   grid:
-    'title title'
-    'band-two-check band-three-check';
-  margin-left: 5px;
-  width: 485px;
+    'title'
+    'body';
+  margin: 15px 10px 15px -60px;
   padding: 10px 10px;
+  height: 100px;
   border-style: solid;
   border-color: #ddd;
+  justify-self: center;
+  align-self: center;
 `;
 
 const Title = styled.h2`
@@ -26,8 +27,7 @@ const Title = styled.h2`
 /* eslint-disable react/prop-types */
 export default props => (
   <Container>
-    <Title>MSFB Wiring / Control Check</Title>
-    <BandTwoCheck {...props} />
-    <BandThreeCheck {...props} />
+    <Title>Blanking Codes Check</Title>
+    <BlankingCodesButtons {...props} />
   </Container>
 );
