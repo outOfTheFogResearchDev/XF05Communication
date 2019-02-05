@@ -4,6 +4,7 @@ module.exports = portName => {
   let callback;
   let handleData;
   let response = '';
+  const history = [];
 
   const port = new SerialPort(portName, {
     baudRate: 115200,
@@ -19,7 +20,7 @@ module.exports = portName => {
     if (indexOfClose === -1) return;
     const data = response.slice(1, indexOfClose);
     response = response.slice(indexOfClose + 1);
-    console.log(data); // eslint-disable-line no-console
+    history.push(data);
     if (data === 'Power RESET') return;
     if (data.length > 5) {
       callback(data);
@@ -48,6 +49,8 @@ module.exports = portName => {
           port.write(`{${command}}`);
         })
       : null;
+
+  port.history = () => history;
 
   return port;
 };

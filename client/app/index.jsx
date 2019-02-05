@@ -36,6 +36,24 @@ const resolveSyncronously = async pArray => {
   if (pArray.length) await resolveSyncronously(pArray);
 };
 
+const parseBlankingCodesForDisplay = codes =>
+  Object.entries(codes)
+    .sort(([a], [b]) => +a - +b)
+    .reduce(
+      (
+        response,
+        [
+          target,
+          {
+            high: [highCode, highdBm],
+            low: [lowCode, lowdBm],
+          },
+        ],
+        i
+      ) => `${response}_${i}|${target}|${lowdBm}:${lowCode}/${highdBm}:${highCode}`,
+      ''
+    );
+
 export default class extends Component {
   constructor(props) {
     super(props);
@@ -113,14 +131,11 @@ export default class extends Component {
 
   async togglePrint() {
     const { printing, unit } = this.state;
-    console.log('here');
     if (unit) {
       if (!printing) {
-        console.log('print me');
         const {
           data: { codes: printCodes },
         } = await get('/api/blanking/full_history', { params: { unit } });
-        console.log(printCodes);
         this.setState({ printing: true, printCodes });
       } else {
         this.setState({ printing: false, printCodes: [] });
@@ -389,22 +404,7 @@ export default class extends Component {
 
   displayBlankingCodes(codes, temperature) {
     this.setStateFocusCommandInput({
-      response: `#T = ${temperature}°C#${Object.entries(codes)
-        .sort(([a], [b]) => +a - +b)
-        .reduce(
-          (
-            response,
-            [
-              target,
-              {
-                high: [highCode, highdBm],
-                low: [lowCode, lowdBm],
-              },
-            ],
-            i
-          ) => `${response}_${i}|${target}|${lowdBm}:${lowCode}/${highdBm}:${highCode}`,
-          ''
-        )}`,
+      response: `#T = ${temperature}°C#${parseBlankingCodesForDisplay(codes)}`,
     });
   }
 
@@ -448,7 +448,7 @@ export default class extends Component {
           <PrintUnit>Unit # {unit}</PrintUnit>
           <PrintDate>{date}</PrintDate>
           <br />
-          <PrintTable codes={printCodes} />
+          <PrintTable codesArray={printCodes} parseBlankingCodesForDisplay={parseBlankingCodesForDisplay} />
         </Fragment>
       );
     }

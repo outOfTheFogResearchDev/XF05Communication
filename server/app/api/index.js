@@ -136,6 +136,8 @@ msfbSwitch.get('/indicator', async (req, res) => {
 
 api.use('/msfb_switch', msfbSwitch);
 
+api.get('/history', (req, res) => res.status(200).send({ history: port.connection.history() }));
+
 api.get('/:command', async (req, res) => {
   const { command } = req.params;
   const response = await port.connection.writeCommand(command.toUpperCase(), identityParser);

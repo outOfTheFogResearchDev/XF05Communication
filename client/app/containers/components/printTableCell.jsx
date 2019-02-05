@@ -1,12 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
-import ParseBlankingCodes from './subcomponents/blankingCodeParser';
+import BlankingCodeParser from './subcomponents/blankingCodeParser';
 
 const BlankingCodeTable = styled.table`
   border: 1px solid grey;
   border-collapse: collapse;
   margin: 10px 10px;
   width: 95%;
+  text-align: center;
 `;
 
 const BlankingCodeTableHeaders = styled.th`
@@ -20,7 +21,7 @@ const BlankingCodeTableFooter = styled.td`
 `;
 
 /* eslint-disable react/prop-types */
-export default ({ response: { codes, tempurature } }) => (
+export default ({ response: { codes, temperature } }) => (
   <BlankingCodeTable>
     <tbody>
       <tr>
@@ -32,10 +33,10 @@ export default ({ response: { codes, tempurature } }) => (
         .substring(1)
         .split('_')
         .map(line => (
-          <ParseBlankingCodes key={`${Math.random()}`} response={line} />
+          <BlankingCodeParser key={`${Math.random()}`} response={line} withOutState />
         ))}
       <tr>
-        <BlankingCodeTableFooter colSpan="4">{tempurature}</BlankingCodeTableFooter>
+        <BlankingCodeTableFooter colSpan="4">{`T = ${temperature}`}</BlankingCodeTableFooter>
       </tr>
     </tbody>
   </BlankingCodeTable>

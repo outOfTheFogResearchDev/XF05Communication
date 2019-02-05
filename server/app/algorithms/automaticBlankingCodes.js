@@ -93,7 +93,7 @@ const findBlankingValues = async () => {
         await rfOff();
         throw new Error(`Error with blanking: Bid not blank at a6`);
       }
-      code += 1;
+      code += 2;
       await findBlankingValues();
     }
   }
