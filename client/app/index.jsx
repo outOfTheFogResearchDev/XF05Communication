@@ -1,5 +1,5 @@
 import React, { Fragment, Component } from 'react';
-import { get, post } from 'axios';
+import axios from 'axios';
 import styled from 'styled-components';
 import PrintTable from './containers/printTable';
 import Header from './containers/header';
@@ -30,6 +30,48 @@ const Container = styled.div`
     'wiring .'
     'msfb blanking';
 `;
+
+const httpReq = axios.create();
+
+httpReq.defaults.timeout = 500;
+
+const get = (() => {
+  let tries = 0;
+  const innerGet = (url, params = {}) =>
+    new Promise(async resolve => {
+      try {
+        const data = await httpReq.get(url, params);
+        tries = 0;
+        resolve(data);
+      } catch (e) {
+        tries += 1;
+        if (tries >= 5) {
+          window.alert('issue talking with the XF05 box'); // eslint-disable-line no-alert
+          resolve({ data: {} });
+        }
+        resolve(await innerGet(url, params));
+      }
+    });
+  return innerGet;
+})();
+
+const post = (() => {
+  let tries = 0;
+  const innerGet = async (url, params = {}) => {
+    try {
+      await httpReq.post(url, params);
+      tries = 0;
+    } catch (e) {
+      tries += 1;
+      if (tries >= 5) {
+        window.alert('issue talking with the XF05 box'); // eslint-disable-line no-alert
+        throw e;
+      }
+      await innerGet(url, params);
+    }
+  };
+  return innerGet;
+})();
 
 const resolveSyncronously = async pArray => {
   await pArray.pop()();
