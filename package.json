@@ -6,6 +6,7 @@
   "scripts": {
     "test": "set NODE_ENV='test' && jest",
     "start": "node server/index.js",
+    "start-dev": "nodemon server/index.js",
     "gui-setup-helper": "node server/guiSetupHelper.js",
     "cpp-build": "node-gyp rebuild",
     "react-dev": "webpack -d --watch --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack.config.js",
@@ -19,22 +20,24 @@
     "url": "git+https://github.com/Max-Berkowitz/XF05Communication.git"
   },
   "author": "Max Berkowitz",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/Max-Berkowitz/XF05Communication/issues"
   },
   "homepage": "https://github.com/Max-Berkowitz/XF05Communication#readme",
   "dependencies": {
-    "serialport": "^7.1.0",
     "axios": "^0.18.0",
     "bindings": "^1.3.1",
     "body-parser": "^1.18.3",
+    "csv-parse": "^4.3.1",
+    "csv-stringify": "^5.3.0",
     "express": "^4.16.3",
     "express-session": "^1.15.6",
     "node-addon-api": "^1.6.1",
     "node-gyp": "^3.8.0",
     "react": "^16.5.1",
     "react-dom": "^16.5.1",
+    "serialport": "^7.1.3",
     "styled-components": "^3.4.6"
   },
   "devDependencies": {
@@ -52,11 +55,12 @@
     "eslint": "^4.19.1",
     "eslint-config-airbnb": "^17.0.0",
     "eslint-config-prettier": "^2.10.0",
-    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-import": "^2.15.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
-    "eslint-plugin-react": "^7.9.1",
+    "eslint-plugin-react": "^7.12.4",
     "jest": "^23.4.2",
-    "webpack": "^4.16.5",
+    "nodemon": "^1.18.9",
+    "webpack": "^4.29.0",
     "webpack-cli": "^3.1.0"
   },
   "engines": {

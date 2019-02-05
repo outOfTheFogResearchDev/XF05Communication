@@ -1,21 +1,100 @@
 import React, { Fragment, Component } from 'react';
-import { get, post } from 'axios';
+import axios from 'axios';
 import styled from 'styled-components';
+import PrintTable from './containers/printTable';
 import Header from './containers/header';
 import WiringControlCheck from './containers/wiringControlCheck';
+import BlankingCodesCheck from './containers/blankingCodesCheck';
 import MSFBControlCheck from './containers/msfbControlCheck';
+
+const PrintTitle = styled.h1`
+  display: inline-block;
+  font-size: 100%;
+`;
+
+const PrintUnit = styled.h1`
+  display: inline-block;
+  font-size: 100%;
+  margin-left: 340px;
+`;
+
+const PrintDate = styled.h1`
+  display: inline-block;
+  font-size: 100%;
+  float: right;
+`;
 
 const Container = styled.div`
   display: grid;
   grid:
-    'wiring'
-    'msfb';
+    'wiring .'
+    'msfb blanking';
 `;
+
+const httpReq = axios.create();
+
+httpReq.defaults.timeout = 500;
+
+const get = (() => {
+  let tries = 0;
+  const innerGet = (url, params = {}) =>
+    new Promise(async resolve => {
+      try {
+        const data = await httpReq.get(url, params);
+        tries = 0;
+        resolve(data);
+      } catch (e) {
+        tries += 1;
+        if (tries >= 5) {
+          window.alert('issue talking with the XF05 box'); // eslint-disable-line no-alert
+          resolve({ data: {} });
+        }
+        resolve(await innerGet(url, params));
+      }
+    });
+  return innerGet;
+})();
+
+const post = (() => {
+  let tries = 0;
+  const innerGet = async (url, params = {}) => {
+    try {
+      await httpReq.post(url, params);
+      tries = 0;
+    } catch (e) {
+      tries += 1;
+      if (tries >= 5) {
+        window.alert('issue talking with the XF05 box'); // eslint-disable-line no-alert
+        throw e;
+      }
+      await innerGet(url, params);
+    }
+  };
+  return innerGet;
+})();
 
 const resolveSyncronously = async pArray => {
   await pArray.pop()();
   if (pArray.length) await resolveSyncronously(pArray);
 };
+
+const parseBlankingCodesForDisplay = codes =>
+  Object.entries(codes)
+    .sort(([a], [b]) => +a - +b)
+    .reduce(
+      (
+        response,
+        [
+          target,
+          {
+            high: [highCode, highdBm],
+            low: [lowCode, lowdBm],
+          },
+        ],
+        i
+      ) => `${response}_${i}|${target}|${lowdBm}:${lowCode}/${highdBm}:${highCode}`,
+      ''
+    );
 
 export default class extends Component {
   constructor(props) {
@@ -34,8 +113,12 @@ export default class extends Component {
       bandTwoSwitchToggled: false,
       bandThreeSwitchToggled: false,
       bandThreeCheckRadioState: '',
+      printCodes: [],
+      printing: false,
     };
 
+    this.getBlankingCodes = this.getBlankingCodes.bind(this);
+    this.togglePrint = this.togglePrint.bind(this);
     this.connect = this.connect.bind(this);
     this.handleUnitNumberChange = this.handleUnitNumberChange.bind(this);
     this.handleCheckCommunication = this.addConnectedCheck(this.handleCheckCommunication);
@@ -43,28 +126,63 @@ export default class extends Component {
     this.handleCustomCommandChange = this.handleCustomCommandChange.bind(this);
     this.handleCustomCommandSubmit = this.addConnectedCheck(this.handleCustomCommandSubmit);
     this.handleChannelSwitch = this.handleChannelSwitch.bind(this);
-    this.handleTransferSwitchToggle = this.addChannelCheck(this.addConnectedCheck(this.handleTransferSwitchToggle));
-    this.handleFilterBankStateSwitch = this.addChannelCheck(this.addConnectedCheck(this.handleFilterBankStateSwitch));
-    this.handleFilterBankIndClick = this.addChannelCheck(this.addConnectedCheck(this.handleFilterBankIndClick));
-    this.handleAutoAttClick = this.addChannelCheck(this.addConnectedCheck(this.handleAutoAttClick));
-    this.handleAttChange = this.addChannelCheck(this.addConnectedCheck(this.handleAttChange));
-    this.handleBlankingSwitchToggle = this.addChannelCheck(this.addConnectedCheck(this.handleBlankingSwitchToggle));
-    this.handleBlankingReadClick = this.addChannelCheck(this.addConnectedCheck(this.handleBlankingReadClick));
-    this.handleBlankingWriteClick = this.addChannelCheck(this.addConnectedCheck(this.handleBlankingWriteClick));
+    this.handleTransferSwitchToggle = this.addConnectedCheck(this.addChannelCheck(this.handleTransferSwitchToggle));
+    this.handleFilterBankStateSwitch = this.addConnectedCheck(this.addChannelCheck(this.handleFilterBankStateSwitch));
+    this.handleFilterBankIndClick = this.addConnectedCheck(this.addChannelCheck(this.handleFilterBankIndClick));
+    this.handleAutoAttClick = this.addConnectedCheck(this.addChannelCheck(this.handleAutoAttClick));
+    this.handleAttChange = this.addConnectedCheck(this.addChannelCheck(this.handleAttChange));
+    this.handleBlankingSwitchToggle = this.addConnectedCheck(this.addChannelCheck(this.handleBlankingSwitchToggle));
+    this.handleBlankingReadClick = this.addConnectedCheck(this.addChannelCheck(this.handleBlankingReadClick));
+    this.handleBlankingWriteClick = this.addConnectedCheck(this.addChannelCheck(this.handleBlankingWriteClick));
     this.handleBlankingChange = this.handleBlankingChange.bind(this);
     this.handleBandTwoCheckSwitchToggle = this.addConnectedCheck(this.handleBandTwoCheckSwitchToggle);
     this.handleBandTwoCheckAttOnClick = this.addConnectedCheck(this.handleBandTwoCheckAttOnClick);
     this.handleBandTwoCheckAttOffClick = this.addConnectedCheck(this.handleBandTwoCheckAttOffClick);
     this.handleBandThreeCheckSwitchToggle = this.addConnectedCheck(this.handleBandThreeCheckSwitchToggle);
     this.handleBandThreeCheckRadioChange = this.addConnectedCheck(this.handleBandThreeCheckRadioChange);
+    this.handleAutomaticBlankingCodesClick = this.addChannelCheck(this.handleAutomaticBlankingCodesClick);
   }
 
   async componentDidMount() {
     await this.connect();
   }
 
+  componentDidUpdate() {
+    const { printing } = this.state;
+    if (printing) {
+      this.print();
+    }
+  }
+
   setStateFocusCommandInput(state) {
     this.setState(state, () => document.getElementById('command-input').focus());
+  }
+
+  async getBlankingCodes() {
+    const { unit, channel } = this.state;
+    const {
+      data: { codes, temperature },
+    } = await get('/api/blanking/history', { params: { unit, channel } });
+    this.displayBlankingCodes(codes, temperature);
+  }
+
+  print() {
+    window.print();
+    this.togglePrint();
+  }
+
+  async togglePrint() {
+    const { printing, unit } = this.state;
+    if (unit) {
+      if (!printing) {
+        const {
+          data: { codes: printCodes },
+        } = await get('/api/blanking/full_history', { params: { unit } });
+        this.setState({ printing: true, printCodes });
+      } else {
+        this.setState({ printing: false, printCodes: [] });
+      }
+    }
   }
 
   async connect() {
@@ -326,6 +444,24 @@ export default class extends Component {
     );
   }
 
+  displayBlankingCodes(codes, temperature) {
+    this.setStateFocusCommandInput({
+      response: `#T = ${temperature}°C#${parseBlankingCodesForDisplay(codes)}`,
+    });
+  }
+
+  async handleAutomaticBlankingCodesClick() {
+    const { unit, channel } = this.state;
+    try {
+      const {
+        data: { codes, temperature },
+      } = await get('/api/blanking/automatic_algorithm', { params: { unit, channel } });
+      this.displayBlankingCodes(codes, temperature);
+    } catch (e) {
+      this.setStateFocusCommandInput({ response: e.response.data.error.substring(7) });
+    }
+  }
+
   render() {
     const {
       channel,
@@ -340,8 +476,26 @@ export default class extends Component {
       bandTwoSwitchToggled,
       bandThreeSwitchToggled,
       bandThreeCheckRadioState,
+      printCodes,
+      printing,
     } = this.state;
 
+    //* printing view
+    if (printing) {
+      const today = new Date();
+      const date = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+      return (
+        <Fragment>
+          <PrintTitle>Blanking Codes</PrintTitle>
+          <PrintUnit>Unit # {unit}</PrintUnit>
+          <PrintDate>{date}</PrintDate>
+          <br />
+          <PrintTable codesArray={printCodes} parseBlankingCodesForDisplay={parseBlankingCodesForDisplay} />
+        </Fragment>
+      );
+    }
+
+    //* normal view
     return (
       <Fragment>
         <Header
@@ -384,6 +538,11 @@ export default class extends Component {
             handleBandThreeCheckSwitchToggle={this.handleBandThreeCheckSwitchToggle}
             bandThreeCheckRadioState={bandThreeCheckRadioState}
             handleBandThreeCheckRadioChange={this.handleBandThreeCheckRadioChange}
+          />
+          <BlankingCodesCheck
+            handleAutomaticBlankingCodesClick={this.handleAutomaticBlankingCodesClick}
+            getBlankingCodes={this.getBlankingCodes}
+            togglePrint={this.togglePrint}
           />
         </Container>
       </Fragment>

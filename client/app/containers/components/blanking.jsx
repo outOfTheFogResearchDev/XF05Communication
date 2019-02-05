@@ -31,6 +31,7 @@ const Read = styled.button`
   height: 70%;
   align-self: center;
 `;
+
 const Write = styled.button`
   grid-area: write;
   justify-self: center;

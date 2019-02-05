@@ -10,7 +10,7 @@ const Container = styled.div`
     'three four both neither';
   border-color: '#000';
   border-style: double;
-  width: 250px;
+  width: 260px;
   height: 120px;
   justify-self: center;
   align-self: center;
@@ -109,7 +109,7 @@ export default ({
       />
     </BothContainer>
     <NeitherContainer>
-      <Text>Pass</Text>
+      <Text>Bypass</Text>
       <Radio
         type="radio"
         checked={bandThreeCheckRadioState === 'neither'}

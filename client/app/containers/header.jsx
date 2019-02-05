@@ -1,5 +1,6 @@
 import React, { Fragment } from 'react';
 import styled from 'styled-components';
+import BlankingCodeTable from './components/blankingCodeTable';
 
 const UnitForm = styled.form`
   display: inline-block;
@@ -78,7 +79,7 @@ const ResponseContainer = styled.div`
   float: right;
   margin-right: 10px;
   width: 411px;
-  border: 2px solid grey;
+  border: 2px solid black;
   text-align: center;
 `;
 
@@ -119,7 +120,9 @@ export default ({
       id="command-input"
       value={customCommand}
       onChange={handleCustomCommandChange}
-      onKeyPress={({ charCode }) => (charCode === 13 ? handleCustomCommandSubmit() : null)}
+      onKeyPress={({ charCode }) => {
+        if (charCode === 13) handleCustomCommandSubmit();
+      }}
     />
     <Temperature type="submit" onClick={handleTemperatureClick}>
       Temperature
@@ -132,7 +135,7 @@ export default ({
       </Fragment>
     ))}
     <ResponseContainer>
-      <Response>{response}</Response>
+      <Response>{response.charAt(0) === '#' ? <BlankingCodeTable response={response} /> : response}</Response>
     </ResponseContainer>
   </Fragment>
 );
