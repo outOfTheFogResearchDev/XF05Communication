@@ -29,8 +29,19 @@ const readCsv = async (unit, channel) => {
   return new Promise(resolve => csvRead(csv, (err, data) => resolve(data)));
 };
 
+const getDateLastModified = (unit, channel) =>
+  new Promise(async resolve => {
+    try {
+      const { mtime } = await stat(csvLocation(unit, channel));
+      mtime.setHours(mtime.getHours() - 8);
+      resolve(mtime);
+    } catch (e) {
+      resolve(null);
+    }
+  });
+
 const getCodeHistory = async (unit, channel) => {
-  const csvArray = await readCsv(unit, channel);
+  const csvArray = await readCsv(unit, channel).catch(() => [[null, null, null, null, null], []]);
   return {
     temperature: csvArray.pop()[0],
     codes: csvArray.reduce((obj, [target, highCode, highdBm, lowCode, lowdBm]) => {
@@ -41,7 +52,11 @@ const getCodeHistory = async (unit, channel) => {
   };
 };
 
-const getAllCodeHistory = async unit => Promise.all([1, 2, 3, 4, 5].map(channel => getCodeHistory(unit, channel)));
+const getAllCodeHistory = async unit => {
+  const codes = await Promise.all([1, 2, 3, 4, 5].map(channel => getCodeHistory(unit, channel)));
+  const dates = await Promise.all([1, 2, 3, 4, 5].map(channel => getDateLastModified(unit, channel)));
+  return { codes, date: dates.sort((a, b) => a < b)[0] };
+};
 
 const storeCodeHistory = async (unit, channel, codes, tempurature) => {
   const csvArray = Object.entries(codes).reduce(

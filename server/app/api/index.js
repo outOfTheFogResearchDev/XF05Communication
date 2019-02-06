@@ -72,8 +72,8 @@ blanking.get('/history', async (req, res) => {
 
 blanking.get('/full_history', async (req, res) => {
   const { unit } = req.query;
-  const codes = await getAllCodeHistory(unit);
-  res.status(200).send({ codes });
+  const { codes, date } = await getAllCodeHistory(unit);
+  res.status(200).send({ codes, printDate: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}` });
 });
 
 api.use('/blanking', blanking);

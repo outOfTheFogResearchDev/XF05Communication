@@ -103,6 +103,7 @@ export default class extends Component {
       bandThreeSwitchToggled: false,
       bandThreeCheckRadioState: '',
       printCodes: [],
+      printDate: '',
       printing: false,
     };
 
@@ -165,11 +166,11 @@ export default class extends Component {
     if (unit) {
       if (!printing) {
         const {
-          data: { codes: printCodes },
+          data: { codes: printCodes, printDate },
         } = await axios.get('/api/blanking/full_history', { params: { unit } });
-        this.setState({ printing: true, printCodes });
+        this.setState({ printing: true, printCodes, printDate });
       } else {
-        this.setState({ printing: false, printCodes: [] });
+        this.setState({ printing: false, printCodes: [], printDate: '' });
       }
     }
   }
@@ -482,18 +483,17 @@ export default class extends Component {
       bandThreeSwitchToggled,
       bandThreeCheckRadioState,
       printCodes,
+      printDate,
       printing,
     } = this.state;
 
     //* printing view
     if (printing) {
-      const today = new Date();
-      const date = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
       return (
         <Fragment>
           <PrintTitle>Blanking Codes</PrintTitle>
           <PrintUnit>Unit # {unit}</PrintUnit>
-          <PrintDate>{date}</PrintDate>
+          <PrintDate>{printDate}</PrintDate>
           <br />
           <PrintTable codesArray={printCodes} parseBlankingCodesForDisplay={parseBlankingCodesForDisplay} />
         </Fragment>
