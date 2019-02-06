@@ -47,9 +47,9 @@ const get = (() => {
         tries += 1;
         if (tries >= 5) {
           window.alert('issue talking with the XF05 box'); // eslint-disable-line no-alert
+          tries = 0;
           resolve({ data: {} });
-        }
-        resolve(await innerGet(url, params));
+        } else resolve(await innerGet(url, params));
       }
     });
   return innerGet;
@@ -57,7 +57,7 @@ const get = (() => {
 
 const post = (() => {
   let tries = 0;
-  const innerGet = async (url, params = {}) => {
+  const innerPost = async (url, params = {}) => {
     try {
       await httpReq.post(url, params);
       tries = 0;
@@ -65,12 +65,12 @@ const post = (() => {
       tries += 1;
       if (tries >= 5) {
         window.alert('issue talking with the XF05 box'); // eslint-disable-line no-alert
+        tries = 0;
         throw e;
-      }
-      await innerGet(url, params);
+      } else await innerPost(url, params);
     }
   };
-  return innerGet;
+  return innerPost;
 })();
 
 const resolveSyncronously = async pArray => {
@@ -455,7 +455,7 @@ export default class extends Component {
     try {
       const {
         data: { codes, temperature },
-      } = await get('/api/blanking/automatic_algorithm', { params: { unit, channel } });
+      } = await axios.get('/api/blanking/automatic_algorithm', { params: { unit, channel } });
       this.displayBlankingCodes(codes, temperature);
     } catch (e) {
       this.setStateFocusCommandInput({ response: e.response.data.error.substring(7) });
