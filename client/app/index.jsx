@@ -35,47 +35,36 @@ const httpReq = axios.create();
 
 httpReq.defaults.timeout = 500;
 
-const get = (() => {
-  let tries = 0;
-  const innerGet = (url, params = {}) =>
-    new Promise(async resolve => {
-      try {
-        const data = await httpReq.get(url, params);
-        tries = 0;
-        resolve(data);
-      } catch (e) {
-        tries += 1;
-        if (tries >= 5) {
-          window.alert('issue talking with the XF05 box'); // eslint-disable-line no-alert
-          tries = 0;
-          resolve({ data: {} });
-        } else resolve(await innerGet(url, params));
-      }
-    });
-  return innerGet;
-})();
-
-const post = (() => {
-  let tries = 0;
-  const innerPost = async (url, params = {}) => {
+const get = (url, params = {}, tries = 0) =>
+  new Promise(async resolve => {
     try {
-      await httpReq.post(url, params);
-      tries = 0;
+      resolve(await httpReq.get(url, params));
     } catch (e) {
-      tries += 1;
       if (tries >= 5) {
         window.alert('issue talking with the XF05 box'); // eslint-disable-line no-alert
-        tries = 0;
-        throw e;
-      } else await innerPost(url, params);
+        resolve({ data: {} });
+      } else {
+        resolve(get(url, params, tries + 1));
+      }
     }
-  };
-  return innerPost;
-})();
+  });
+
+const post = (url, params = {}, tries = 0) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      resolve(await httpReq.post(url, params));
+    } catch (e) {
+      if (tries >= 5) {
+        window.alert('issue talking with the XF05 box'); // eslint-disable-line no-alert
+        reject(e);
+      } else resolve(post(url, params, tries + 1));
+    }
+  });
 
 const resolveSyncronously = async pArray => {
+  if (!pArray.length) return;
   await pArray.pop()();
-  if (pArray.length) await resolveSyncronously(pArray);
+  await resolveSyncronously(pArray);
 };
 
 const parseBlankingCodesForDisplay = codes =>
@@ -162,7 +151,7 @@ export default class extends Component {
     const { unit, channel } = this.state;
     const {
       data: { codes, temperature },
-    } = await get('/api/blanking/history', { params: { unit, channel } });
+    } = await axios.get('/api/blanking/history', { params: { unit, channel } });
     this.displayBlankingCodes(codes, temperature);
   }
 
@@ -177,7 +166,7 @@ export default class extends Component {
       if (!printing) {
         const {
           data: { codes: printCodes },
-        } = await get('/api/blanking/full_history', { params: { unit } });
+        } = await axios.get('/api/blanking/full_history', { params: { unit } });
         this.setState({ printing: true, printCodes });
       } else {
         this.setState({ printing: false, printCodes: [] });
@@ -265,18 +254,23 @@ export default class extends Component {
     if (channel !== 3 && bandThreeSwitchToggled)
       resets.push(() => get('/api/transfer_switch', { params: { channel: 3, on: 0 } }));
 
-    if (resets.length) await resolveSyncronously(resets);
-    this.setStateFocusCommandInput({
-      channel: +value,
-      transferSwitchToggled: false,
-      filterBankState: '',
-      attValue: 'Auto',
-      blankingSwitchToggled: false,
-      blankingValue: '',
-      bandTwoSwitchToggled: false,
-      bandThreeSwitchToggled: false,
-      bandThreeCheckRadioState: '',
-    });
+    try {
+      await resolveSyncronously(resets);
+    } catch (e) {
+      // eslint-disable-line no-empty
+    } finally {
+      this.setStateFocusCommandInput({
+        channel: +value,
+        transferSwitchToggled: false,
+        filterBankState: '',
+        attValue: 'Auto',
+        blankingSwitchToggled: false,
+        blankingValue: '',
+        bandTwoSwitchToggled: false,
+        bandThreeSwitchToggled: false,
+        bandThreeCheckRadioState: '',
+      });
+    }
   }
 
   async handleTemperatureClick() {
@@ -290,13 +284,15 @@ export default class extends Component {
     const { channel, transferSwitchToggled, bandTwoSwitchToggled, bandThreeSwitchToggled } = this.state;
     const that = this;
     await get('/api/transfer_switch', { params: { channel, on: +!transferSwitchToggled } }).then(
-      ({ data: { status: response } }) =>
-        that.setStateFocusCommandInput({
-          response,
-          transferSwitchToggled: !transferSwitchToggled,
-          bandTwoSwitchToggled: channel === 2 ? !transferSwitchToggled : bandTwoSwitchToggled,
-          bandThreeSwitchToggled: channel === 3 ? !transferSwitchToggled : bandThreeSwitchToggled,
-        })
+      ({ data: { status: response } }) => {
+        const state = { response };
+        if (response) {
+          state.transferSwitchToggled = !transferSwitchToggled;
+          state.bandTwoSwitchToggled = channel === 2 ? !transferSwitchToggled : bandTwoSwitchToggled;
+          state.bandThreeSwitchToggled = channel === 3 ? !transferSwitchToggled : bandThreeSwitchToggled;
+        }
+        that.setStateFocusCommandInput(state);
+      }
     );
   }
 
@@ -389,12 +385,17 @@ export default class extends Component {
     const { channel, transferSwitchToggled, bandTwoSwitchToggled } = this.state;
     const that = this;
     await get('/api/transfer_switch', { params: { channel: 2, on: +!bandTwoSwitchToggled } }).then(
-      ({ data: { status } }) =>
-        that.setStateFocusCommandInput({
-          response: `Band 2 ${+status.slice(-1) ? 'through' : 'pass'}`,
-          bandTwoSwitchToggled: !bandTwoSwitchToggled,
-          transferSwitchToggled: channel === 2 ? !bandTwoSwitchToggled : transferSwitchToggled,
-        })
+      ({ data: { status } }) => {
+        let state = { response: 'undefined' };
+        if (status) {
+          state = {
+            response: `Band 2 ${+status.slice(-1) ? 'through' : 'pass'}`,
+            bandTwoSwitchToggled: !bandTwoSwitchToggled,
+            transferSwitchToggled: channel === 2 ? !bandTwoSwitchToggled : transferSwitchToggled,
+          };
+        }
+        that.setStateFocusCommandInput(state);
+      }
     );
   }
 
@@ -420,12 +421,17 @@ export default class extends Component {
     const { channel, transferSwitchToggled, bandThreeSwitchToggled } = this.state;
     const that = this;
     await get('/api/transfer_switch', { params: { channel: 3, on: +!bandThreeSwitchToggled } }).then(
-      ({ data: { status } }) =>
-        that.setStateFocusCommandInput({
-          response: `Band 3 ${+status.slice(-1) ? 'through' : 'pass'}`,
-          bandThreeSwitchToggled: !bandThreeSwitchToggled,
-          transferSwitchToggled: channel === 3 ? !bandThreeSwitchToggled : transferSwitchToggled,
-        })
+      ({ data: { status } }) => {
+        let state = { response: 'undefined' };
+        if (status) {
+          state = {
+            response: `Band 3 ${+status.slice(-1) ? 'through' : 'pass'}`,
+            bandThreeSwitchToggled: !bandThreeSwitchToggled,
+            transferSwitchToggled: channel === 3 ? !bandThreeSwitchToggled : transferSwitchToggled,
+          };
+        }
+        that.setStateFocusCommandInput(state);
+      }
     );
   }
 
@@ -436,12 +442,11 @@ export default class extends Component {
       data: { status },
     } = await get('/api/msfb_switch/filter', { params: { filter: value } });
     const that = this;
-    await get('/api/msfb_switch/indicator').then(({ data: { indicator } }) =>
-      that.setStateFocusCommandInput({
-        response: `${status} ${indicator}`,
-        bandThreeCheckRadioState: value,
-      })
-    );
+    await get('/api/msfb_switch/indicator').then(({ data: { indicator } }) => {
+      const state = { response: `${status} ${indicator}` };
+      if (indicator) state.bandThreeCheckRadioState = value;
+      that.setStateFocusCommandInput(state);
+    });
   }
 
   displayBlankingCodes(codes, temperature) {
