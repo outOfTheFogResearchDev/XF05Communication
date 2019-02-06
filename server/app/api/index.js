@@ -57,13 +57,6 @@ blanking.get('/automatic_algorithm', async (req, res) => {
   try {
     const codes = await automaticBlankingCodes(channel);
     const temperature = await port.connection.writeCommand('TA000', tempParser);
-    // const codes = {
-    //   '4.4': { high: ['90', 4.7], low: ['8F', 4.2] },
-    //   '-0.6': { high: ['88', -0.3], low: ['87', -0.9] },
-    //   '-5.6': { high: ['80', -5.2], low: ['7F', -5.8] },
-    //   '-10.6': { high: ['77', -10], low: ['76', -11.2] },
-    // };
-    // const temperature = 34;
     await storeCodeHistory(unit, channel, codes, temperature);
     res.status(200).send({ codes, temperature });
   } catch (e) {
@@ -136,7 +129,7 @@ msfbSwitch.get('/indicator', async (req, res) => {
 
 api.use('/msfb_switch', msfbSwitch);
 
-api.get('/history', (req, res) => res.status(200).send({ history: port.connection.history() }));
+api.get('/log', (req, res) => res.status(200).send({ log: port.connection.log() }));
 
 api.get('/:command', async (req, res) => {
   const { command } = req.params;

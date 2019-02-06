@@ -4,7 +4,7 @@ module.exports = portName => {
   let callback;
   let handleData;
   let response = '';
-  const history = [];
+  const log = [];
 
   const port = new SerialPort(portName, {
     baudRate: 115200,
@@ -20,7 +20,7 @@ module.exports = portName => {
     if (indexOfClose === -1) return;
     const data = response.slice(1, indexOfClose);
     response = response.slice(indexOfClose + 1);
-    history.push(data);
+    log.push(data);
     if (data === 'Power RESET') return;
     if (data.length > 5) {
       callback(data);
@@ -50,7 +50,7 @@ module.exports = portName => {
         })
       : null;
 
-  port.history = () => history;
+  port.log = () => log;
 
   return port;
 };
