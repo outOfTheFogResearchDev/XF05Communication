@@ -21,6 +21,7 @@ module.exports = portName => {
     const data = response.slice(1, indexOfClose);
     response = response.slice(indexOfClose + 1);
     log.push(data);
+    if (log.length > 25) log.shift();
     if (data === 'Power RESET') return;
     if (data.length > 5) {
       callback(data);
