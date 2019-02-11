@@ -12,8 +12,15 @@ async function connect() {
   }
 }
 
+async function disconnect() {
+  await new Promise(resolve => this.connection.close(resolve));
+  this.connection = {};
+  this.connected = false;
+}
+
 module.exports = {
   connected: false,
   connection: {},
   connect,
+  disconnect,
 };
