@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const { post } = require('axios');
 const port = require('../utils/port');
 const {
   identityParser,
@@ -16,8 +17,13 @@ const api = Router();
 
 api.post('/connect', async (req, res) => {
   if (port.connected) res.sendStatus(201);
-  else if (await port.connect()) res.sendStatus(201);
-  else res.sendStatus(400);
+  else {
+    try {
+      await post('http://localhost:3333/api/close_port');
+    } catch (e) {} // eslint-disable-line no-empty
+    if (await port.connect()) res.sendStatus(201);
+    else res.sendStatus(400);
+  }
 });
 
 api.get('/temp', async (req, res) => {
