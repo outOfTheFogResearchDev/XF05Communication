@@ -12,7 +12,13 @@ const {
 } = require('../utils/prasers');
 const automaticBlankingCodes = require('../algorithms/automaticBlankingCodes');
 const getOIP3 = require('../algorithms/automaticOIP3');
-const { getCodeHistory, getAllCodeHistory, storeCodeHistory } = require('../utils/csv');
+const {
+  getCodeHistory,
+  getAllCodeHistory,
+  storeCodeHistory,
+  getOIP3History,
+  storeOIP3History,
+} = require('../utils/csv');
 
 const api = Router();
 
@@ -140,12 +146,23 @@ msfbSwitch.get('/indicator', async (req, res) => {
 
 api.use('/msfb_switch', msfbSwitch);
 
-api.get('/oip3', async (req, res) => {
-  const { channel } = req.query;
+const oip3Endpoint = Router();
+
+oip3Endpoint.get('/', async (req, res) => {
+  const { unit, channel } = req.query;
   const oip3 = await getOIP3(+channel);
+  await storeOIP3History(unit, channel, oip3);
   const temperature = await port.connection.writeCommand('TA000', tempParser);
   res.status(200).send({ oip3, temperature });
 });
+
+oip3Endpoint.get('/history', async (req, res) => {
+  const { unit } = req.query;
+  const oip3Array = await getOIP3History(unit);
+  res.status(200).send({ oip3Array });
+});
+
+api.use('/oip3', oip3Endpoint);
 
 api.get('/log', (req, res) => res.status(200).send({ log: port.connection.log() }));
 

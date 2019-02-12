@@ -39,11 +39,9 @@ const setDown = async () => {
 
 const OIP3Calculation = (power, cableLoss) => -10 + (-10 - power) / 2 + cableLoss;
 
-const roundToOneDec = power => Math.round(power * 10) / 10;
-
 module.exports = async channel => {
   await setUp(channel);
   const power = await getPower();
   await setDown();
-  return roundToOneDec(OIP3Calculation(power, [0.6, 0.8, 1.1, 1.8, 2.8][channel - 1]));
+  return Math.round(OIP3Calculation(power, [0.6, 0.8, 1.1, 1.8, 2.8][channel - 1]));
 };

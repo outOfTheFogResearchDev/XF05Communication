@@ -79,4 +79,37 @@ const storeCodeHistory = async (unit, channel, codes, tempurature) => {
   await writeCsv(unit, channel, csvArray);
 };
 
-module.exports = { getCodeHistory, getAllCodeHistory, storeCodeHistory };
+const oip3Location = unit => `${csvFolderLocation}/unit${unit}_oip3.csv`;
+
+const getOIP3History = async unit => {
+  let oip3Array;
+  try {
+    await stat(oip3Location(unit));
+    const csv = await readFile(oip3Location(unit), 'utf8');
+    oip3Array = await new Promise(resolve => csvRead(csv, (err, data) => resolve(data)));
+  } catch (e) {
+    oip3Array = [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0]];
+  }
+  return oip3Array;
+};
+
+const storeOIP3History = async (unit, channel, oip3) => {
+  try {
+    await stat(csvFolderLocation);
+  } catch (e) {
+    await mkdir(csvFolderLocation);
+  }
+  let oip3Array;
+  try {
+    await stat(oip3Location(unit));
+    const csv = await readFile(oip3Location(unit), 'utf8');
+    oip3Array = await new Promise(resolve => csvRead(csv, (err, data) => resolve(data)));
+  } catch (e) {
+    oip3Array = [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0]];
+  }
+  oip3Array[+channel - 1][1] = oip3;
+  const csv = await new Promise(resolve => csvWrite(oip3Array, (err, data) => resolve(data)));
+  await writeFile(oip3Location(unit), csv);
+};
+
+module.exports = { getCodeHistory, getAllCodeHistory, storeCodeHistory, getOIP3History, storeOIP3History };

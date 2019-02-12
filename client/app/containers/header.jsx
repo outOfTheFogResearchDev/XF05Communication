@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 import styled from 'styled-components';
 import BlankingCodeTable from './components/blankingCodeTable';
+import OIP3Table from './components/oip3Table';
 
 const UnitForm = styled.form`
   display: inline-block;
@@ -135,7 +136,17 @@ export default ({
       </Fragment>
     ))}
     <ResponseContainer>
-      <Response>{response.charAt(0) === '#' ? <BlankingCodeTable response={response} /> : response}</Response>
+      <Response>
+        {/* eslint-disable no-nested-ternary */}
+        {response.constructor === Array ? (
+          <OIP3Table response={response} />
+        ) : response.charAt(0) === '#' ? (
+          <BlankingCodeTable response={response} />
+        ) : (
+          response
+        )}
+        {/* eslint-enable no-nested-ternary */}
+      </Response>
     </ResponseContainer>
   </Fragment>
 );

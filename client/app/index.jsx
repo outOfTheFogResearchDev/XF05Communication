@@ -6,6 +6,7 @@ import Header from './containers/header';
 import WiringControlCheck from './containers/wiringControlCheck';
 import BlankingCodesCheck from './containers/blankingCodesCheck';
 import MSFBControlCheck from './containers/msfbControlCheck';
+import OIP3Check from './containers/oip3Check';
 
 const PrintTitle = styled.h1`
   display: inline-block;
@@ -27,8 +28,8 @@ const PrintDate = styled.h1`
 const Container = styled.div`
   display: grid;
   grid:
-    'wiring .'
-    'msfb blanking';
+    'wiring blanking'
+    'msfb oip3';
 `;
 
 const httpReq = axios.create();
@@ -108,6 +109,7 @@ export default class extends Component {
     };
 
     this.getBlankingCodes = this.getBlankingCodes.bind(this);
+    this.getOIP3History = this.getOIP3History.bind(this);
     this.togglePrint = this.togglePrint.bind(this);
     this.connect = this.connect.bind(this);
     this.handleUnitNumberChange = this.handleUnitNumberChange.bind(this);
@@ -130,7 +132,10 @@ export default class extends Component {
     this.handleBandTwoCheckAttOffClick = this.addConnectedCheck(this.handleBandTwoCheckAttOffClick);
     this.handleBandThreeCheckSwitchToggle = this.addConnectedCheck(this.handleBandThreeCheckSwitchToggle);
     this.handleBandThreeCheckRadioChange = this.addConnectedCheck(this.handleBandThreeCheckRadioChange);
-    this.handleAutomaticBlankingCodesClick = this.addChannelCheck(this.handleAutomaticBlankingCodesClick);
+    this.handleAutomaticBlankingCodesClick = this.addConnectedCheck(
+      this.addChannelCheck(this.handleAutomaticBlankingCodesClick)
+    );
+    this.handleAutomaticOIP3Click = this.addConnectedCheck(this.addChannelCheck(this.handleAutomaticOIP3Click));
   }
 
   async componentDidMount() {
@@ -154,6 +159,15 @@ export default class extends Component {
       data: { codes, temperature },
     } = await axios.get('/api/blanking/history', { params: { unit, channel } });
     this.displayBlankingCodes(codes, temperature);
+  }
+
+  async getOIP3History() {
+    const { unit } = this.state;
+    if (!unit) return;
+    const {
+      data: { oip3Array },
+    } = await get('/api/oip3/history', { params: { unit } });
+    this.setStateFocusCommandInput({ response: oip3Array });
   }
 
   print() {
@@ -468,6 +482,24 @@ export default class extends Component {
     }
   }
 
+  async handleAutomaticOIP3Click() {
+    const { unit, channel } = this.state;
+    /* eslint-disable no-alert */
+    if (
+      !window.confirm(
+        `Is the ${
+          +channel === 1 ? 'Mini-Circuits ZAPD-30-S+' : 'Fairview Microwave MP0218-2'
+        } combiner connected to RF IN on the box and are the two signal generators connected to the combiner?`
+      )
+    )
+      return;
+    /* eslint-enable no-alert */
+    const {
+      data: { oip3, temperature },
+    } = await axios.get('/api/oip3', { params: { unit, channel } });
+    this.setStateFocusCommandInput({ response: `OIP3=${oip3} | T=${temperature}°C` });
+  }
+
   render() {
     const {
       channel,
@@ -534,6 +566,11 @@ export default class extends Component {
             blankingValue={blankingValue}
             handleBlankingChange={this.handleBlankingChange}
           />
+          <BlankingCodesCheck
+            handleAutomaticBlankingCodesClick={this.handleAutomaticBlankingCodesClick}
+            getBlankingCodes={this.getBlankingCodes}
+            togglePrint={this.togglePrint}
+          />
           <MSFBControlCheck
             bandTwoSwitchToggled={bandTwoSwitchToggled}
             handleBandTwoCheckSwitchToggle={this.handleBandTwoCheckSwitchToggle}
@@ -544,11 +581,7 @@ export default class extends Component {
             bandThreeCheckRadioState={bandThreeCheckRadioState}
             handleBandThreeCheckRadioChange={this.handleBandThreeCheckRadioChange}
           />
-          <BlankingCodesCheck
-            handleAutomaticBlankingCodesClick={this.handleAutomaticBlankingCodesClick}
-            getBlankingCodes={this.getBlankingCodes}
-            togglePrint={this.togglePrint}
-          />
+          <OIP3Check handleAutomaticOIP3Click={this.handleAutomaticOIP3Click} getOIP3History={this.getOIP3History} />
         </Container>
       </Fragment>
     );
