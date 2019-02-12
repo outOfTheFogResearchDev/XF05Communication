@@ -47,6 +47,12 @@
       "include_dirs": [ "<(module_root_dir)/server/app/utils/cpp" ],
       "sources": [ "<(module_root_dir)/server/app/utils/cpp/setUpOIP3.cpp" ],
       "link_settings": { "libraries": [ "-lvisa64" ], "library_dirs" : [ "<(module_root_dir)/server/app/utils/cpp" ] }
+    },
+    { 
+      "target_name": "setDownOIP3",
+      "include_dirs": [ "<(module_root_dir)/server/app/utils/cpp" ],
+      "sources": [ "<(module_root_dir)/server/app/utils/cpp/setDownOIP3.cpp" ],
+      "link_settings": { "libraries": [ "-lvisa64" ], "library_dirs" : [ "<(module_root_dir)/server/app/utils/cpp" ] }
     }
   ]
 }

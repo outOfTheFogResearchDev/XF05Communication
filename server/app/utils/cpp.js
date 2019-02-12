@@ -20,4 +20,6 @@ module.exports = {
   setAnalyzer: bindings('setAnalyzer'),
   setPower: bindings('setPower'),
   setRefLevel: bindings('setRefLevel'),
+  setUpOIP3: bindings('setUpOIP3'),
+  setDownOIP3: bindings('setDownOIP3'),
 };
