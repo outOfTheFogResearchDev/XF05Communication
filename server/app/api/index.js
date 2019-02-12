@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { post } = require('axios');
+const axios = require('axios');
 const port = require('../utils/port');
 const {
   identityParser,
@@ -15,11 +15,15 @@ const { getCodeHistory, getAllCodeHistory, storeCodeHistory } = require('../util
 
 const api = Router();
 
+const httpReq = axios.create();
+
+httpReq.defaults.timeout = 200;
+
 api.post('/connect', async (req, res) => {
   if (port.connected) res.sendStatus(201);
   else {
     try {
-      await post('http://localhost:3333/api/close_port');
+      await httpReq.post('http://localhost:3333/api/close_port');
     } catch (e) {} // eslint-disable-line no-empty
     if (await port.connect()) res.sendStatus(201);
     else res.sendStatus(400);
