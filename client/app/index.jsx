@@ -2,6 +2,7 @@ import React, { Fragment, Component } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
 import PrintTable from './containers/printTable';
+import PrintOIP3 from './containers/printOIP3';
 import Header from './containers/header';
 import WiringControlCheck from './containers/wiringControlCheck';
 import BlankingCodesCheck from './containers/blankingCodesCheck';
@@ -16,7 +17,6 @@ const PrintTitle = styled.h1`
 const PrintUnit = styled.h1`
   display: inline-block;
   font-size: 100%;
-  margin-left: 340px;
 `;
 
 const PrintDate = styled.h1`
@@ -104,6 +104,7 @@ export default class extends Component {
       bandThreeSwitchToggled: false,
       bandThreeCheckRadioState: '',
       printCodes: [],
+      printOIP3: [],
       printDate: '',
       printing: false,
     };
@@ -175,16 +176,24 @@ export default class extends Component {
     this.togglePrint();
   }
 
-  async togglePrint() {
+  async togglePrint(type) {
     const { printing, unit } = this.state;
     if (unit) {
       if (!printing) {
-        const {
-          data: { codes: printCodes, printDate },
-        } = await axios.get('/api/blanking/full_history', { params: { unit } });
-        this.setState({ printing: true, printCodes, printDate });
+        console.log(type);
+        if (type === 'blanking') {
+          const {
+            data: { codes: printCodes, printDate },
+          } = await axios.get('/api/blanking/full_history', { params: { unit } });
+          this.setState({ printing: true, printCodes, printDate });
+        } else if (type === 'oip3') {
+          const {
+            data: { oip3Array: printOIP3, printDate },
+          } = await get('/api/oip3/history', { params: { unit, print: true } });
+          this.setState({ printing: true, printOIP3, printDate });
+        }
       } else {
-        this.setState({ printing: false, printCodes: [], printDate: '' });
+        this.setState({ printing: false, printCodes: [], printOIP3: [], printDate: '' });
       }
     }
   }
@@ -515,6 +524,7 @@ export default class extends Component {
       bandThreeSwitchToggled,
       bandThreeCheckRadioState,
       printCodes,
+      printOIP3,
       printDate,
       printing,
     } = this.state;
@@ -523,11 +533,15 @@ export default class extends Component {
     if (printing) {
       return (
         <Fragment>
-          <PrintTitle>Blanking Codes</PrintTitle>
-          <PrintUnit>Unit # {unit}</PrintUnit>
+          <PrintTitle>{printOIP3.length ? 'OIP3 Values' : 'Blanking Codes'}</PrintTitle>
+          <PrintUnit style={{ marginLeft: printOIP3.length ? '355px' : '345px' }}>Unit # {unit}</PrintUnit>
           <PrintDate>{printDate}</PrintDate>
           <br />
-          <PrintTable codesArray={printCodes} parseBlankingCodesForDisplay={parseBlankingCodesForDisplay} />
+          {printOIP3.length ? (
+            <PrintOIP3 oip3Array={printOIP3} />
+          ) : (
+            <PrintTable codesArray={printCodes} parseBlankingCodesForDisplay={parseBlankingCodesForDisplay} />
+          )}
         </Fragment>
       );
     }
@@ -581,7 +595,11 @@ export default class extends Component {
             bandThreeCheckRadioState={bandThreeCheckRadioState}
             handleBandThreeCheckRadioChange={this.handleBandThreeCheckRadioChange}
           />
-          <OIP3Check handleAutomaticOIP3Click={this.handleAutomaticOIP3Click} getOIP3History={this.getOIP3History} />
+          <OIP3Check
+            handleAutomaticOIP3Click={this.handleAutomaticOIP3Click}
+            getOIP3History={this.getOIP3History}
+            togglePrint={this.togglePrint}
+          />
         </Container>
       </Fragment>
     );
