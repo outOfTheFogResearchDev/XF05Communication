@@ -4,7 +4,7 @@ const openPort = require('./openPort');
 async function connect() {
   try {
     const [{ comName }] = await SerialPort.list();
-    this.connection = await openPort(comName);
+    this.connection = openPort(comName);
     this.connected = true;
     return true;
   } catch (e) {
