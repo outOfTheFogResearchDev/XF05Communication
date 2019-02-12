@@ -4,7 +4,7 @@ import styled from 'styled-components';
 const Container = styled.div`
   gird-area: body;
   display: grid;
-  grid: 'automatic history' /* print */;
+  grid: 'automatic history print';
   border-color: '#000';
   border-style: double;
   width: 300px;
@@ -29,16 +29,16 @@ const OIP3Histoy = styled.button`
   align-self: center;
 `;
 
-// const Print = styled.button`
-//   grid-area: print;
-//   padding: 5px 5px;
-//   justify-self: center;
-//   width: 60px;
-//   align-self: center;
-// `;
+const Print = styled.button`
+  grid-area: print;
+  padding: 5px 5px;
+  justify-self: center;
+  width: 80px;
+  align-self: center;
+`;
 
 /* eslint-disable react/prop-types */
-export default ({ handleAutomaticOIP3Click, getOIP3History }) => (
+export default ({ handleAutomaticOIP3Click, getOIP3History, togglePrint }) => (
   <Container>
     <AutomaticOIP3 type="submit" onClick={handleAutomaticOIP3Click}>
       Run OIP3
@@ -46,8 +46,8 @@ export default ({ handleAutomaticOIP3Click, getOIP3History }) => (
     <OIP3Histoy type="submit" onClick={getOIP3History}>
       View Previous Data
     </OIP3Histoy>
-    {/* <Print type="submit" onClick={togglePrint}>
-      Print All
-    </Print> */}
+    <Print type="submit" onClick={() => togglePrint('oip3')}>
+      Print OIP3
+    </Print>
   </Container>
 );

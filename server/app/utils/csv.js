@@ -81,16 +81,23 @@ const storeCodeHistory = async (unit, channel, codes, tempurature) => {
 
 const oip3Location = unit => `${csvFolderLocation}/unit${unit}_oip3.csv`;
 
-const getOIP3History = async unit => {
+const getOIP3History = async (unit, print) => {
   let oip3Array;
+  let date;
   try {
     await stat(oip3Location(unit));
     const csv = await readFile(oip3Location(unit), 'utf8');
     oip3Array = await new Promise(resolve => csvRead(csv, (err, data) => resolve(data)));
+    if (print)
+      date = await new Promise(async resolve => {
+        const { mtime } = await stat(oip3Location(unit));
+        mtime.setHours(mtime.getHours() - 8);
+        resolve(mtime);
+      });
   } catch (e) {
     oip3Array = [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0]];
   }
-  return oip3Array;
+  return { oip3Array, date };
 };
 
 const storeOIP3History = async (unit, channel, oip3) => {

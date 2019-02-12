@@ -157,9 +157,11 @@ oip3Endpoint.get('/', async (req, res) => {
 });
 
 oip3Endpoint.get('/history', async (req, res) => {
-  const { unit } = req.query;
-  const oip3Array = await getOIP3History(unit);
-  res.status(200).send({ oip3Array });
+  const { unit, print } = req.query;
+  const { oip3Array, date } = await getOIP3History(unit, print);
+  res
+    .status(200)
+    .send({ oip3Array, printDate: date ? `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}` : null });
 });
 
 api.use('/oip3', oip3Endpoint);

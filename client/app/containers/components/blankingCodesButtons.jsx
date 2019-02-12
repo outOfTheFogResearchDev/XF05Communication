@@ -46,7 +46,7 @@ export default ({ handleAutomaticBlankingCodesClick, getBlankingCodes, togglePri
     <BlankingCodeHistoy type="submit" onClick={getBlankingCodes}>
       View Previous Sweep
     </BlankingCodeHistoy>
-    <Print type="submit" onClick={togglePrint}>
+    <Print type="submit" onClick={() => togglePrint('blanking')}>
       Print All
     </Print>
   </Container>
