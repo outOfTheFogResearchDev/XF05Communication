@@ -3,10 +3,9 @@
 
 using namespace v8;
 
-void rfOn(const FunctionCallbackInfo<Value> &args)
+void setAnalyzer(const FunctionCallbackInfo<Value> &args)
 {
     Isolate *isolate = args.GetIsolate();
-    double dBm = args[0].As<Number>()->Value();
 
     //* C++ starts here
 
@@ -19,8 +18,10 @@ void rfOn(const FunctionCallbackInfo<Value> &args)
     if (viStatus)
         return;
 
-    // Sets reference level
-    viPrintf(viMXA, "DISP:WIND:TRAC:Y:RLEV %f dBm\n", dBm);
+    // Set band center and marker
+    viPrintf(viMXA, "DISP:WIND:TRAC:Y:RLEV 0 dBm\n");
+    viPrintf(viMXA, "BAND:AUTO ON\n");
+    viPrintf(viMXA, "BAND:VID:AUTO ON\n");
 
     viClose(viMXA);     // closes session
     viClose(defaultRM); // closes default session
@@ -30,7 +31,7 @@ void rfOn(const FunctionCallbackInfo<Value> &args)
 
 void init(Local<Object> exports, Local<Object> method)
 {
-    NODE_SET_METHOD(method, "exports", rfOn);
+    NODE_SET_METHOD(method, "exports", setAnalyzer);
 }
 
 NODE_MODULE(NODE_GYP_MODULE_NAME, init);

@@ -5,13 +5,22 @@ using namespace v8;
 
 void rfOff(const FunctionCallbackInfo<Value> &args)
 {
+    int generatorNumber = int(args[0].As<Number>()->Value());
+
     //* C++ starts here
 
     ViSession defaultRM, viMXG;
     ViStatus viStatus = 0;
 
     viStatus = viOpenDefaultRM(&defaultRM);
-    viStatus = viOpen(defaultRM, "GPIB0::18::INSTR", VI_NULL, VI_NULL, &viMXG);
+    if (generatorNumber == 2)
+    {
+        viStatus = viOpen(defaultRM, "GPIB0::19::INSTR", VI_NULL, VI_NULL, &viMXG);
+    }
+    else
+    {
+        viStatus = viOpen(defaultRM, "GPIB0::18::INSTR", VI_NULL, VI_NULL, &viMXG);
+    }
 
     if (viStatus)
         return;

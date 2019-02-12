@@ -11,6 +11,7 @@ const {
   msfbFilterCheckParser,
 } = require('../utils/prasers');
 const automaticBlankingCodes = require('../algorithms/automaticBlankingCodes');
+const getOIP3 = require('../algorithms/automaticOIP3');
 const { getCodeHistory, getAllCodeHistory, storeCodeHistory } = require('../utils/csv');
 
 const api = Router();
@@ -138,6 +139,13 @@ msfbSwitch.get('/indicator', async (req, res) => {
 });
 
 api.use('/msfb_switch', msfbSwitch);
+
+api.get('/oip3', async (req, res) => {
+  const { channel } = req.query;
+  const oip3 = await getOIP3(+channel);
+  const temperature = await port.connection.writeCommand('TA000', tempParser);
+  res.status(200).send({ oip3, temperature });
+});
 
 api.get('/log', (req, res) => res.status(200).send({ log: port.connection.log() }));
 

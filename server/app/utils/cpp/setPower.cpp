@@ -8,6 +8,7 @@ void setPower(const FunctionCallbackInfo<Value> &args)
     Isolate *isolate = args.GetIsolate();
     double frequency = args[0].As<Number>()->Value();
     double power = args[1].As<Number>()->Value();
+    int generatorNumber = int(args[2].As<Number>()->Value());
 
     //* C++ starts here
 
@@ -15,7 +16,14 @@ void setPower(const FunctionCallbackInfo<Value> &args)
     ViStatus viStatus = 0;
 
     viStatus = viOpenDefaultRM(&defaultRM);
-    viStatus = viOpen(defaultRM, "GPIB0::18::INSTR", VI_NULL, VI_NULL, &viMXG);
+    if (generatorNumber == 2)
+    {
+        viStatus = viOpen(defaultRM, "GPIB0::19::INSTR", VI_NULL, VI_NULL, &viMXG);
+    }
+    else
+    {
+        viStatus = viOpen(defaultRM, "GPIB0::18::INSTR", VI_NULL, VI_NULL, &viMXG);
+    }
 
     if (viStatus)
         return;
