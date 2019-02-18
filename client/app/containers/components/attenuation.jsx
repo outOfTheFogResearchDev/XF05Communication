@@ -56,7 +56,7 @@ export default ({ handleAutoAttClick, attValue, handleAttChange }) => (
     </Auto>
     <AttForm onSubmit={e => e.preventDefault()}>
       <AttNumberLabel>Attenuation Level:</AttNumberLabel>
-      <AttNumber type="text" value={attValue} onChange={handleAttChange} />
+      <AttNumber type="number" min="1" max="13" value={attValue} onChange={handleAttChange} />
     </AttForm>
   </Container>
 );
