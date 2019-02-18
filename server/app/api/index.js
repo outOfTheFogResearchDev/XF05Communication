@@ -108,7 +108,7 @@ filterBank.post('/mode', async (req, res) => {
   let modeNumber;
   if (mode === 'low') modeNumber = 1;
   else if (mode === 'high') modeNumber = 2;
-  else if (mode === 'break') modeNumber = 3;
+  else if (mode === 'msfb') modeNumber = 3;
   const success = await port.connection.writeCommand(`DA${channel}${modeNumber}0`, successParser);
   res.sendStatus(success ? 201 : 400);
 });

@@ -7,6 +7,7 @@ const ToggleSwitchWrapper = styled.div`
   flex-direction: column;
   justify-self: center;
   align-self: center;
+  margin-top: ${props => props.marginTop || '0px'};
 `;
 
 const Toggle = styled.div`
@@ -57,9 +58,9 @@ const RippleBg = styled.div`
 `;
 
 const ToggleSwitch = props => {
-  const { toggled, onToggle } = props; // eslint-disable-line react/prop-types
+  const { toggled, onToggle, marginTop } = props; // eslint-disable-line react/prop-types
   return (
-    <ToggleSwitchWrapper>
+    <ToggleSwitchWrapper marginTop={marginTop}>
       <Toggle onClick={onToggle} toggled={toggled} {...props}>
         <ToggleBall toggled={toggled} {...props} />
         <RippleBg visible={toggled} {...props} />

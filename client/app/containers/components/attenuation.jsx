@@ -9,7 +9,7 @@ const Container = styled.div`
     'level level';
   border-color: '#000';
   border-style: double;
-  width: 210px;
+  width: 220px;
   height: 95px;
   justify-self: center;
   align-self: center;
@@ -55,7 +55,7 @@ export default ({ handleAutoAttClick, attValue, handleAttChange }) => (
       Set to Auto
     </Auto>
     <AttForm onSubmit={e => e.preventDefault()}>
-      <AttNumberLabel>Attenuator Level:</AttNumberLabel>
+      <AttNumberLabel>Attenuation Level:</AttNumberLabel>
       <AttNumber type="text" value={attValue} onChange={handleAttChange} />
     </AttForm>
   </Container>

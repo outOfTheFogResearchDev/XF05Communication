@@ -14,8 +14,8 @@ export default ({ response }) => (
     <tbody>
       {response.map(([channel, oip3]) => (
         <tr key={`${Math.random()}`}>
-          <td>Channel {channel}</td>
-          <td>{+oip3 ? `> ${oip3}` : ''}</td>
+          <td>Channel {channel}: </td>
+          <td>{+oip3 ? `${oip3}` : ''}</td>
         </tr>
       ))}
     </tbody>
