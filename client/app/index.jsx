@@ -98,7 +98,7 @@ export default class extends Component {
       transferSwitchToggled: false,
       filterBankState: '',
       adjacentAttenuationState: false,
-      attValue: 'Auto',
+      attValue: 0,
       blankingSwitchToggled: false,
       blankingValue: '',
       bandTwoSwitchToggled: false,
@@ -286,7 +286,7 @@ export default class extends Component {
       if (channel + 1 <= 5) resets.push(() => post('/api/automatic_attenuation', { channel: channel + 1 }));
       if (channel - 1 >= 1) resets.push(() => post('/api/automatic_attenuation', { channel: channel - 1 }));
     }
-    if (attValue !== 'Auto') resets.push(() => post('/api/automatic_attenuation', { channel }));
+    if (attValue !== 0) resets.push(() => post('/api/automatic_attenuation', { channel }));
     if (blankingSwitchToggled) resets.push(() => post('/api/blanking', { channel, on: 0 }));
     if (bandThreeCheckRadioState) resets.push(() => get('/api/msfb_switch/filter', { params: { filter: 0 } }));
     if (channel !== 2 && bandTwoSwitchToggled)
@@ -304,7 +304,7 @@ export default class extends Component {
         transferSwitchToggled: false,
         filterBankState: '',
         adjacentAttenuationState: false,
-        attValue: 'Auto',
+        attValue: 0,
         blankingSwitchToggled: false,
         blankingValue: '',
         bandTwoSwitchToggled: false,
@@ -381,26 +381,20 @@ export default class extends Component {
     const { channel } = this.state;
     try {
       await post('/api/automatic_attenuation', { channel });
-      this.setStateFocusCommandInput({ response: 'Attenuation Set to Auto', attValue: 'Auto' });
+      this.setStateFocusCommandInput({ response: 'Attenuation Set to Auto', attValue: 0 });
     } catch (e) {
       this.setStateFocusCommandInput({ response: 'Failed' });
     }
   }
 
   async handleAttChange({ target: { value: level } }) {
-    if (level === '') {
-      this.setState({ attValue: level });
-      return;
-    }
     const { channel } = this.state;
-    const levelInt = parseInt(level, 16);
-    if (levelInt && levelInt >= 1 && levelInt <= 13) {
-      try {
-        await post('/api/manual_attenuation', { channel, level });
-        this.setState({ response: `Attenuation Set: ${level}`, attValue: level });
-      } catch (e) {
-        this.setState({ response: 'Failed' });
-      }
+    if (!+level || +level < 1 || +level > 13) return;
+    try {
+      await post('/api/manual_attenuation', { channel, level: (+level).toString(16) });
+      this.setState({ response: `Attenuation Set: ${level}`, attValue: level });
+    } catch (e) {
+      this.setState({ response: 'Failed' });
     }
   }
 
