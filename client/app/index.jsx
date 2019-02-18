@@ -97,6 +97,7 @@ export default class extends Component {
       connected: false,
       transferSwitchToggled: false,
       filterBankState: '',
+      adjacentAttenuationState: false,
       attValue: 'Auto',
       blankingSwitchToggled: false,
       blankingValue: '',
@@ -122,6 +123,9 @@ export default class extends Component {
     this.handleTransferSwitchToggle = this.addConnectedCheck(this.addChannelCheck(this.handleTransferSwitchToggle));
     this.handleFilterBankStateSwitch = this.addConnectedCheck(this.addChannelCheck(this.handleFilterBankStateSwitch));
     this.handleFilterBankIndClick = this.addConnectedCheck(this.addChannelCheck(this.handleFilterBankIndClick));
+    this.handleAdjacentAttenuationToggle = this.addConnectedCheck(
+      this.addChannelCheck(this.handleAdjacentAttenuationToggle)
+    );
     this.handleAutoAttClick = this.addConnectedCheck(this.addChannelCheck(this.handleAutoAttClick));
     this.handleAttChange = this.addConnectedCheck(this.addChannelCheck(this.handleAttChange));
     this.handleBlankingSwitchToggle = this.addConnectedCheck(this.addChannelCheck(this.handleBlankingSwitchToggle));
@@ -180,7 +184,6 @@ export default class extends Component {
     const { printing, unit } = this.state;
     if (unit) {
       if (!printing) {
-        console.log(type);
         if (type === 'blanking') {
           const {
             data: { codes: printCodes, printDate },
@@ -260,6 +263,7 @@ export default class extends Component {
       channel,
       transferSwitchToggled,
       filterBankState,
+      adjacentAttenuationState,
       attValue,
       blankingSwitchToggled,
       bandTwoSwitchToggled,
@@ -269,7 +273,11 @@ export default class extends Component {
     if (!unit || channel === +value) return;
     const resets = [];
     if (transferSwitchToggled) resets.push(() => get('/api/transfer_switch', { params: { channel, on: 0 } }));
-    if (filterBankState) resets.push(() => post('/api/filter_bank/mode', { channel, mode: 'break' }));
+    if (filterBankState) resets.push(() => post('/api/filter_bank/mode', { channel, mode: 'msfb' }));
+    if (adjacentAttenuationState) {
+      if (channel + 1 <= 5) resets.push(() => post('/api/automatic_attenuation', { channel: channel + 1 }));
+      if (channel - 1 >= 1) resets.push(() => post('/api/automatic_attenuation', { channel: channel - 1 }));
+    }
     if (attValue !== 'Auto') resets.push(() => post('/api/automatic_attenuation', { channel }));
     if (blankingSwitchToggled) resets.push(() => post('/api/blanking', { channel, on: 0 }));
     if (bandThreeCheckRadioState) resets.push(() => get('/api/msfb_switch/filter', { params: { filter: 0 } }));
@@ -287,6 +295,7 @@ export default class extends Component {
         channel: +value,
         transferSwitchToggled: false,
         filterBankState: '',
+        adjacentAttenuationState: false,
         attValue: 'Auto',
         blankingSwitchToggled: false,
         blankingValue: '',
@@ -336,6 +345,28 @@ export default class extends Component {
       data: { status: response },
     } = await get('/api/filter_bank/indicator', { params: { channel } });
     this.setStateFocusCommandInput({ response });
+  }
+
+  async handleAdjacentAttenuationToggle() {
+    const { channel, adjacentAttenuationState } = this.state;
+    const nullF = () => {};
+    if (adjacentAttenuationState) {
+      try {
+        await resolveSyncronously(
+          channel + 1 <= 5 ? post('/api/automatic_attenuation', { channel: channel + 1 }) : nullF,
+          channel - 1 >= 1 ? post('/api/automatic_attenuation', { channel: channel - 1 }) : nullF
+        );
+        this.setStateFocusCommandInput({ adjacentAttenuationState: false });
+      } catch (e) {} // eslint-disable-line no-empty
+    } else {
+      try {
+        await resolveSyncronously(
+          channel + 1 <= 5 ? post('/api/manual_attenuation', { channel: channel + 1, level: 'D' }) : nullF,
+          channel - 1 >= 1 ? post('/api/manual_attenuation', { channel: channel - 1, level: 'D' }) : nullF
+        );
+        this.setStateFocusCommandInput({ adjacentAttenuationState: true });
+      } catch (e) {} // eslint-disable-line no-empty
+    }
   }
 
   async handleAutoAttClick() {
@@ -517,6 +548,7 @@ export default class extends Component {
       response,
       transferSwitchToggled,
       filterBankState,
+      adjacentAttenuationState,
       attValue,
       blankingSwitchToggled,
       blankingValue,
@@ -569,6 +601,8 @@ export default class extends Component {
             handleTransferSwitchToggle={this.handleTransferSwitchToggle}
             filterBankState={filterBankState}
             handleFilterBankIndClick={this.handleFilterBankIndClick}
+            handleAdjacentAttenuationToggle={this.handleAdjacentAttenuationToggle}
+            adjacentAttenuationState={adjacentAttenuationState}
             handleFilterBankStateSwitch={this.handleFilterBankStateSwitch}
             handleAutoAttClick={this.handleAutoAttClick}
             attValue={attValue}

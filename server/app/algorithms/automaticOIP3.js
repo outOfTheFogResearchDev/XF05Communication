@@ -31,8 +31,10 @@ const setUp = async channel => {
   await setUpOIP3(IM3);
 };
 
-const setDown = async () => {
+const setDown = async channel => {
   await setDownOIP3();
+  port.connection.writeCommand(`5A0${channel}0`); // Turn attenuation on
+  await new Promise(resolve => setTimeout(resolve, 200));
   await rfOff(1);
   await rfOff(2);
 };
@@ -42,6 +44,6 @@ const OIP3Calculation = (power, cableLoss) => -10 + (-10 - power) / 2 + cableLos
 module.exports = async channel => {
   await setUp(channel);
   const power = await getPower();
-  await setDown();
+  await setDown(channel);
   return Math.round(OIP3Calculation(power, [0.6, 0.8, 1.1, 1.8, 2.8][channel - 1]));
 };
