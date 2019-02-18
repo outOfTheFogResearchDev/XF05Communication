@@ -37,6 +37,15 @@ api.post('/connect', async (req, res) => {
   }
 });
 
+api.post('/hard_connect', async (req, res) => {
+  try {
+    await httpReq.post('http://localhost:3333/api/close_port');
+  } catch (e) {} // eslint-disable-line no-empty
+  if (port.connected) await port.disconnect();
+  if (await port.connect()) res.sendStatus(201);
+  else res.sendStatus(400);
+});
+
 api.get('/temp', async (req, res) => {
   const temperature = await port.connection.writeCommand('TA000', tempParser);
   res.status(200).send({ temperature });

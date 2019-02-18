@@ -201,9 +201,17 @@ export default class extends Component {
     }
   }
 
-  async connect() {
+  async connect(hard = false) {
     const { connected } = this.state;
-    if (connected) this.setState({ response: 'Connected to XF05' });
+    if (hard) {
+      try {
+        await post('/api/hard_connect');
+        this.setState({ connected: true, response: 'Connected to XF05' });
+      } catch (e) {
+        window.alert('Issue opening COM port to XF05, please connect the USB and click "connect"'); // eslint-disable-line no-alert
+        this.setState({ connected: false });
+      }
+    } else if (connected) this.setState({ response: 'Connected to XF05' });
     else {
       try {
         await post('/api/connect');
