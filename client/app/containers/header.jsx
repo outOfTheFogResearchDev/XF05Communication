@@ -108,7 +108,7 @@ export default ({
       <UnitNumber type="number" min="0" value={unit} onChange={handleUnitNumberChange} />
     </UnitForm>
     <ProgramTitle>XF05 Communication</ProgramTitle>
-    <Reconnect type="submit" onClick={connect}>
+    <Reconnect type="submit" onClick={() => connect('hard')}>
       Connect
     </Reconnect>
     <CheckConnection type="submit" onClick={handleCheckCommunication}>
