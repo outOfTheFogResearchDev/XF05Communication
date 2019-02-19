@@ -28,8 +28,8 @@ const ToggleTitle = styled.p`
   grid-area: toggleTitle;
   justify-self: end;
   font-size: 85%;
-  margin-top: 5px;
-  margin-right: 5px;
+  margin-top: 15px;
+  margin-right: 17px;
 `;
 
 const Indicator = styled.button`
@@ -95,7 +95,7 @@ export default ({
 }) => (
   <Container>
     <Label>Filter Bank</Label>
-    <ToggleTitle>Atten Adjacent Bands</ToggleTitle>
+    <ToggleTitle>Filter Data Mode</ToggleTitle>
     <Indicator type="submit" onClick={handleFilterBankIndClick}>
       Indicator Check
     </Indicator>

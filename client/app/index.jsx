@@ -154,8 +154,11 @@ export default class extends Component {
     }
   }
 
-  setStateFocusCommandInput(state) {
-    this.setState(state, () => document.getElementById('command-input').focus());
+  setStateFocusCommandInput(state, func = () => {}) {
+    this.setState(state, async () => {
+      await func();
+      document.getElementById('command-input').focus();
+    });
   }
 
   async getBlankingCodes() {
@@ -356,15 +359,19 @@ export default class extends Component {
   }
 
   async handleAdjacentAttenuationToggle() {
-    const { channel, adjacentAttenuationState } = this.state;
+    const { channel, adjacentAttenuationState, transferSwitchToggled } = this.state;
     const nullF = () => {};
+    const { handleTransferSwitchToggle } = this;
     if (adjacentAttenuationState) {
       try {
         await resolveSyncronously(
           channel + 1 <= 5 ? post('/api/automatic_attenuation', { channel: channel + 1 }) : nullF,
           channel - 1 >= 1 ? post('/api/automatic_attenuation', { channel: channel - 1 }) : nullF
         );
-        this.setStateFocusCommandInput({ adjacentAttenuationState: false });
+        this.setStateFocusCommandInput(
+          { adjacentAttenuationState: false },
+          transferSwitchToggled ? handleTransferSwitchToggle : nullF
+        );
       } catch (e) {} // eslint-disable-line no-empty
     } else {
       try {
@@ -372,7 +379,10 @@ export default class extends Component {
           channel + 1 <= 5 ? post('/api/manual_attenuation', { channel: channel + 1, level: 'D' }) : nullF,
           channel - 1 >= 1 ? post('/api/manual_attenuation', { channel: channel - 1, level: 'D' }) : nullF
         );
-        this.setStateFocusCommandInput({ adjacentAttenuationState: true });
+        this.setStateFocusCommandInput(
+          { adjacentAttenuationState: true },
+          !transferSwitchToggled ? handleTransferSwitchToggle : nullF
+        );
       } catch (e) {} // eslint-disable-line no-empty
     }
   }
