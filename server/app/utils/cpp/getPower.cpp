@@ -23,6 +23,10 @@ void setAnalyzer(const FunctionCallbackInfo<Value> &args)
     // Initiate a sweep
     viPrintf(viMXA, "INIT:IMM;*WAI\n");
 
+    // Find the peak
+    viPrintf(viMXA, "CALC:MARK1:MODE OFF\n");
+    viPrintf(viMXA, "CALC:MARK1:MAX\n");
+
     // Get the current output in string form, to be converted to a number in JS
     viQueryf(viMXA, "CALC:MARKER1:Y?\n", "%t", &res);
 
