@@ -34,7 +34,6 @@ const Container = styled.div`
 
 const ping = async () => {
   await axios.post('/ping');
-  setTimeout(ping, 1000);
 };
 
 const httpReq = axios.create();
@@ -150,7 +149,7 @@ export default class extends Component {
 
   async componentDidMount() {
     await this.connect();
-    ping();
+    setInterval(ping, 1000);
   }
 
   componentDidUpdate() {
