@@ -25,8 +25,6 @@ void setAnalyzer(const FunctionCallbackInfo<Value> &args)
     viPrintf(viMXA, "DISP:WIND:TRAC:Y:RLEV -50 dBm\n");
     viPrintf(viMXA, "BAND 1 KHz\n");
     viPrintf(viMXA, "BAND:VID 100 Hz\n");
-    viPrintf(viMXA, "CALC:MARK1:MODE OFF\n");
-    viPrintf(viMXA, "CALC:MARK1:SET:CENT\n");
 
     viClose(viMXA);     // closes session
     viClose(defaultRM); // closes default session
