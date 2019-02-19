@@ -32,6 +32,11 @@ const Container = styled.div`
     'msfb oip3';
 `;
 
+const ping = async () => {
+  await axios.post('/ping');
+  setTimeout(ping, 1000);
+};
+
 const httpReq = axios.create();
 
 httpReq.defaults.timeout = 500;
@@ -145,6 +150,7 @@ export default class extends Component {
 
   async componentDidMount() {
     await this.connect();
+    ping();
   }
 
   componentDidUpdate() {

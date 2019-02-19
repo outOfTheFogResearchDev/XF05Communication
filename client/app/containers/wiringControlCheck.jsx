@@ -11,10 +11,10 @@ const Container = styled.div`
   grid:
     'title title'
     'transfer-switch filter-bank'
-    'attenuation blanking';
+    'blanking attenuation';
   margin: 15px 5px;
   height: 330px;
-  width: 515px;
+  width: 523px;
   padding: 10px 10px;
   border-style: solid;
   border-color: #ddd;
@@ -33,7 +33,7 @@ export default props => (
     <Title>Wiring / Control Check</Title>
     <TransferSwitch {...props} />
     <FilterBank {...props} />
-    <Attenuation {...props} />
     <Blanking {...props} />
+    <Attenuation {...props} />
   </Container>
 );
