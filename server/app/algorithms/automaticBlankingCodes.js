@@ -86,7 +86,7 @@ const findBlankingValues = async () => {
     if (results[target].high[1] < target) {
       if (code >= 166) {
         await rfOff();
-        throw new Error(`Error with blanking: Bid not blank at a6`);
+        throw new Error(`Error with blanking: not blank at a6`);
       }
       code += 2;
       await findBlankingValues();
