@@ -137,8 +137,6 @@ export default class extends Component {
     this.handleBlankingWriteClick = this.addConnectedCheck(this.addChannelCheck(this.handleBlankingWriteClick));
     this.handleBlankingChange = this.handleBlankingChange.bind(this);
     this.handleBandTwoCheckSwitchToggle = this.addConnectedCheck(this.handleBandTwoCheckSwitchToggle);
-    this.handleBandTwoCheckAttOnClick = this.addConnectedCheck(this.handleBandTwoCheckAttOnClick);
-    this.handleBandTwoCheckAttOffClick = this.addConnectedCheck(this.handleBandTwoCheckAttOffClick);
     this.handleBandThreeCheckSwitchToggle = this.addConnectedCheck(this.handleBandThreeCheckSwitchToggle);
     this.handleBandThreeCheckRadioChange = this.addConnectedCheck(this.handleBandThreeCheckRadioChange);
     this.handleAutomaticBlankingCodesClick = this.addConnectedCheck(
@@ -471,24 +469,6 @@ export default class extends Component {
     );
   }
 
-  async handleBandTwoCheckAttOnClick() {
-    try {
-      await post('/api/manual_attenuation', { channel: 1, level: 'A' });
-      this.setStateFocusCommandInput({ response: `Band 1 Attenuation Set: A` });
-    } catch (e) {
-      this.setStateFocusCommandInput({ response: 'Failed' });
-    }
-  }
-
-  async handleBandTwoCheckAttOffClick() {
-    try {
-      await post('/api/manual_attenuation', { channel: 1, level: '1' });
-      this.setStateFocusCommandInput({ response: `Band 1 Attenuation Set: 1` });
-    } catch (e) {
-      this.setStateFocusCommandInput({ response: 'Failed' });
-    }
-  }
-
   async handleBandThreeCheckSwitchToggle() {
     const { channel, transferSwitchToggled, bandThreeSwitchToggled } = this.state;
     const that = this;
@@ -639,8 +619,6 @@ export default class extends Component {
           <MSFBControlCheck
             bandTwoSwitchToggled={bandTwoSwitchToggled}
             handleBandTwoCheckSwitchToggle={this.handleBandTwoCheckSwitchToggle}
-            handleBandTwoCheckAttOnClick={this.handleBandTwoCheckAttOnClick}
-            handleBandTwoCheckAttOffClick={this.handleBandTwoCheckAttOffClick}
             bandThreeSwitchToggled={bandThreeSwitchToggled}
             handleBandThreeCheckSwitchToggle={this.handleBandThreeCheckSwitchToggle}
             bandThreeCheckRadioState={bandThreeCheckRadioState}

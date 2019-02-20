@@ -6,12 +6,12 @@ const Container = styled.div`
   grid-area: band-two-check;
   display: grid;
   grid:
-    'header off switch on'
-    'attenuation-on attenuation-on attenuation-off attenuation-off';
+    'header header header'
+    'off switch on';
   border-color: '#000';
   border-style: double;
-  width: 200px;
-  height: 120px;
+  width: 155px;
+  height: 85px;
   justify-self: center;
   align-self: center;
 `;
@@ -19,7 +19,6 @@ const Container = styled.div`
 const Label = styled.p`
   grid-area: header;
   margin-top: 0px;
-  margin-left: 5px;
   font-size: 150%;
   justify-self: center;
 `;
@@ -29,47 +28,22 @@ const SwitchLabelOff = styled.p`
   justify-self: end;
   align-self: center;
   font-size: 75%;
-  margin-right: 3px;
+  margin-top: -20px;
 `;
 
 const SwitchLabelOn = styled.p`
   grid-area: on;
   align-self: center;
   font-size: 75%;
-  margin-right: 5px;
-`;
-
-const AttenuationOn = styled.button`
-  grid-area: attenuation-on;
-  justify-self: center;
-  padding: 5px 5px;
-  align-self: start;
-`;
-
-const AttenuationOff = styled.button`
-  grid-area: attenuation-off;
-  justify-self: center;
-  padding: 5px 5px;
-  align-self: start;
+  margin-top: -20px;
 `;
 
 /* eslint-disable react/prop-types */
-export default ({
-  bandTwoSwitchToggled,
-  handleBandTwoCheckSwitchToggle,
-  handleBandTwoCheckAttOnClick,
-  handleBandTwoCheckAttOffClick,
-}) => (
+export default ({ bandTwoSwitchToggled, handleBandTwoCheckSwitchToggle }) => (
   <Container>
     <Label>Band 2 Check</Label>
     <SwitchLabelOff>off</SwitchLabelOff>
-    <ToggleSwitch toggled={bandTwoSwitchToggled} onToggle={handleBandTwoCheckSwitchToggle} />
+    <ToggleSwitch toggled={bandTwoSwitchToggled} onToggle={handleBandTwoCheckSwitchToggle} marginTop="-30px" />
     <SwitchLabelOn>on</SwitchLabelOn>
-    <AttenuationOn type="submit" onClick={handleBandTwoCheckAttOnClick}>
-      Att On
-    </AttenuationOn>
-    <AttenuationOff type="submit" onClick={handleBandTwoCheckAttOffClick}>
-      Att Off
-    </AttenuationOff>
   </Container>
 );
