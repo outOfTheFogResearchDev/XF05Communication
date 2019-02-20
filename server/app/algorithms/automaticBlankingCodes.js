@@ -75,13 +75,8 @@ const findBlankingValues = async () => {
   await findBlankingPower(input - 3.9, 'low');
 
   if (results[target].low[1] >= target || results[target].low[1].constructor === String) {
-    results[target].high = results[target].low.slice();
     code -= 1;
-    results[target].low = [code.toString(16).toUpperCase()];
-    await setBlanking(170);
-    await setPower(frequency, input - 4);
-    await setBlanking(code);
-    await findBlankingPower(input - 3.9, 'low');
+    await findBlankingValues();
   } else {
     results[target].high = [(code + 1).toString(16).toUpperCase()];
     await setBlanking(170);
