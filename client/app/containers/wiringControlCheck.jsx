@@ -13,8 +13,8 @@ const Container = styled.div`
     'transfer-switch filter-bank'
     'blanking attenuation';
   margin: 15px 5px;
-  height: 330px;
-  width: 523px;
+  height: 295px;
+  width: 530px;
   padding: 10px 10px;
   border-style: solid;
   border-color: #ddd;

@@ -43,7 +43,7 @@ const timedExit = async () => {
   }
 };
 
-setTimeout(timedExit, 10000); // starts on server start
+if (process.env.NODE_ENV !== 'development') setTimeout(timedExit, 10000); // starts on server start
 
 app.post('/ping', (req, res) => {
   ping = true;

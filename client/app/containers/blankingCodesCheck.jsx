@@ -8,7 +8,7 @@ const Container = styled.div`
   grid:
     'title'
     'body';
-  margin: 15px 10px 15px -40px;
+  margin: 15px 10px 15px -30px;
   padding: 10px 10px;
   height: 100px;
   border-style: solid;

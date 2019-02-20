@@ -12,7 +12,7 @@ const Container = styled.div`
   border-color: '#000';
   border-style: double;
   width: 285px;
-  height: 110px;
+  height: 100px;
   justify-self: center;
   align-self: center;
 `;
@@ -28,7 +28,7 @@ const ToggleTitle = styled.p`
   grid-area: toggleTitle;
   justify-self: end;
   font-size: 85%;
-  margin-top: 15px;
+  margin-top: 5px;
   margin-right: 17px;
 `;
 
@@ -38,7 +38,7 @@ const Indicator = styled.button`
   padding: 5px 5px;
   width: 107px;
   align-self: center;
-  margin-top: -30px;
+  margin-top: -40px;
   margin-left: 10px;
 `;
 
@@ -47,14 +47,14 @@ const SwitchLabelOff = styled.p`
   justify-self: end;
   align-self: center;
   font-size: 75%;
-  margin-top: -25px;
+  margin-top: -35px;
 `;
 
 const SwitchLabelOn = styled.p`
   grid-area: on;
   align-self: center;
   font-size: 75%;
-  margin-top: -25px;
+  margin-top: -35px;
 `;
 
 const LowContainer = styled.div`
@@ -100,7 +100,7 @@ export default ({
       Indicator Check
     </Indicator>
     <SwitchLabelOff>off</SwitchLabelOff>
-    <ToggleSwitch marginTop="-30px" toggled={adjacentAttenuationState} onToggle={handleAdjacentAttenuationToggle} />
+    <ToggleSwitch marginTop="-45px" toggled={adjacentAttenuationState} onToggle={handleAdjacentAttenuationToggle} />
     <SwitchLabelOn>on</SwitchLabelOn>
     <LowContainer>
       <Text>Low</Text>
