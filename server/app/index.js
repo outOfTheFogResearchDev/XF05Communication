@@ -38,12 +38,12 @@ const gracefulShutdown = async () => {
 const timedExit = async () => {
   if (!ping) gracefulShutdown();
   else {
-    ping = false;
+    if (!process.env.inOperation) ping = false;
     setTimeout(timedExit, 2000);
   }
 };
 
-if (process.env.NODE_ENV !== 'development') setTimeout(timedExit, 10000); // starts on server start
+setTimeout(timedExit, 10000); // starts on server start
 
 app.post('/ping', (req, res) => {
   ping = true;
