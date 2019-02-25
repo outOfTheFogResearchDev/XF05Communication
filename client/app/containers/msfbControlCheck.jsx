@@ -9,11 +9,12 @@ const Container = styled.div`
   grid:
     'title title'
     'band-two-check band-three-check';
-  margin-left: 5px;
-  width: 485px;
+  width: 450px;
   padding: 10px 10px;
   border-style: solid;
   border-color: #ddd;
+  justify-self:center;
+  align-self:center:
 `;
 
 const Title = styled.h2`
