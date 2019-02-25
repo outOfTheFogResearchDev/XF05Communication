@@ -7,11 +7,11 @@ const Container = styled.div`
   display: grid;
   grid:
     'header off switch on'
-    'three four both neither';
+    'three four neither both';
   border-color: '#000';
   border-style: double;
   width: 260px;
-  height: 120px;
+  height: 88px;
   justify-self: center;
   align-self: center;
 `;
@@ -28,24 +28,28 @@ const ThreeContainer = styled.div`
   display: inline-block;
   justify-self: center;
   grid-area: three;
+  margin-top: -23px;
 `;
 
 const FourContainer = styled.div`
   display: inline-block;
   justify-self: center;
   grid-area: four;
-`;
-
-const BothContainer = styled.div`
-  display: inline-block;
-  justify-self: center;
-  grid-area: both;
+  margin-top: -23px;
 `;
 
 const NeitherContainer = styled.div`
   display: inline-block;
   justify-self: center;
   grid-area: neither;
+  margin-top: -23px;
+`;
+
+const BothContainer = styled.div`
+  display: inline-block;
+  justify-self: center;
+  grid-area: both;
+  margin-top: -23px;
 `;
 
 const Text = styled.label``;
@@ -60,6 +64,7 @@ const SwitchLabelOff = styled.p`
   justify-self: end;
   align-self: center;
   font-size: 75%;
+  margin-top: -15px;
   margin-right: 2px;
 `;
 
@@ -67,6 +72,7 @@ const SwitchLabelOn = styled.p`
   grid-area: on;
   align-self: center;
   font-size: 75%;
+  margin-top: -15px;
 `;
 
 /* eslint-disable react/prop-types */
@@ -79,7 +85,7 @@ export default ({
   <Container>
     <Label>Band 3 Check</Label>
     <SwitchLabelOff>off</SwitchLabelOff>
-    <ToggleSwitch toggled={bandThreeSwitchToggled} onToggle={handleBandThreeCheckSwitchToggle} />
+    <ToggleSwitch toggled={bandThreeSwitchToggled} onToggle={handleBandThreeCheckSwitchToggle} marginTop="-25px" />
     <SwitchLabelOn>on</SwitchLabelOn>
     <ThreeContainer>
       <Text>3</Text>
@@ -99,6 +105,15 @@ export default ({
         value="4"
       />
     </FourContainer>
+    <NeitherContainer>
+      <Text>Pass</Text>
+      <Radio
+        type="radio"
+        checked={bandThreeCheckRadioState === 'neither'}
+        onChange={handleBandThreeCheckRadioChange}
+        value="neither"
+      />
+    </NeitherContainer>
     <BothContainer>
       <Text>Both</Text>
       <Radio
@@ -108,14 +123,5 @@ export default ({
         value="both"
       />
     </BothContainer>
-    <NeitherContainer>
-      <Text>Bypass</Text>
-      <Radio
-        type="radio"
-        checked={bandThreeCheckRadioState === 'neither'}
-        onChange={handleBandThreeCheckRadioChange}
-        value="neither"
-      />
-    </NeitherContainer>
   </Container>
 );

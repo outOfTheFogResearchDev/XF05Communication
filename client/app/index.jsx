@@ -30,6 +30,9 @@ const Container = styled.div`
   grid:
     'wiring blanking'
     'msfb oip3';
+  margin: 15px 5px;
+  width: 900px;
+  gap: 10px;
 `;
 
 const ping = async () => {
@@ -67,10 +70,16 @@ const post = (url, params = {}, tries = 0) =>
   });
 
 const resolveSyncronously = async pArray => {
-  if (!pArray.length) return;
-  await pArray.pop()();
-  await resolveSyncronously(pArray);
-};
+  if (!pArray.length) return [];
+  let data = {};
+  return pArray
+    .pop()()
+    .then(d => {
+      data = d;
+      resolveSyncronously(pArray);
+    })
+    .then(results => [data].concat(results));
+}; // returns values in reverse order
 
 const parseBlankingCodesForDisplay = codes =>
   Object.entries(codes)
@@ -114,7 +123,7 @@ export default class extends Component {
       printing: false,
     };
 
-    this.getBlankingCodes = this.getBlankingCodes.bind(this);
+    this.getBlankingCodes = this.addChannelCheck(this.getBlankingCodes);
     this.getOIP3History = this.getOIP3History.bind(this);
     this.togglePrint = this.togglePrint.bind(this);
     this.connect = this.connect.bind(this);
@@ -188,22 +197,21 @@ export default class extends Component {
 
   async togglePrint(type) {
     const { printing, unit } = this.state;
-    if (unit) {
-      if (!printing) {
-        if (type === 'blanking') {
-          const {
-            data: { codes: printCodes, printDate },
-          } = await axios.get('/api/blanking/full_history', { params: { unit } });
-          this.setState({ printing: true, printCodes, printDate });
-        } else if (type === 'oip3') {
-          const {
-            data: { oip3Array: printOIP3, printDate },
-          } = await get('/api/oip3/history', { params: { unit, print: true } });
-          this.setState({ printing: true, printOIP3, printDate });
-        }
-      } else {
-        this.setState({ printing: false, printCodes: [], printOIP3: [], printDate: '' });
+    if (!unit) return;
+    if (!printing) {
+      if (type === 'blanking') {
+        const {
+          data: { codes: printCodes, printDate },
+        } = await axios.get('/api/blanking/full_history', { params: { unit } });
+        this.setState({ printing: true, printCodes, printDate });
+      } else if (type === 'oip3') {
+        const {
+          data: { oip3Array: printOIP3, printDate },
+        } = await get('/api/oip3/history', { params: { unit, print: true } });
+        this.setState({ printing: true, printOIP3, printDate });
       }
+    } else {
+      this.setState({ printing: false, printCodes: [], printOIP3: [], printDate: '' });
     }
   }
 
@@ -295,11 +303,14 @@ export default class extends Component {
     if (attValue !== 0) resets.push(() => post('/api/automatic_attenuation', { channel }));
     if (blankingSwitchToggled) resets.push(() => post('/api/blanking', { channel, on: 0 }));
     if (bandThreeCheckRadioState) resets.push(() => get('/api/msfb_switch/filter', { params: { filter: 0 } }));
-    if (channel !== 2 && bandTwoSwitchToggled)
-      resets.push(() => get('/api/transfer_switch', { params: { channel: 2, on: 0 } }));
-    if (channel !== 3 && bandThreeSwitchToggled)
-      resets.push(() => get('/api/transfer_switch', { params: { channel: 3, on: 0 } }));
-
+    if (bandTwoSwitchToggled) {
+      [1, 3].forEach(ch => resets.push(() => post('/api/automatic_attenuation', { channel: ch })));
+      if (channel !== 2) resets.push(() => get('/api/transfer_switch', { params: { channel: 2, on: 0 } }));
+    }
+    if (bandThreeSwitchToggled) {
+      [1, 2, 4].forEach(ch => resets.push(() => post('/api/automatic_attenuation', { channel: ch })));
+      if (channel !== 3) resets.push(() => get('/api/transfer_switch', { params: { channel: 3, on: 0 } }));
+    }
     try {
       await resolveSyncronously(resets);
     } catch (e) {
@@ -454,37 +465,47 @@ export default class extends Component {
   async handleBandTwoCheckSwitchToggle() {
     const { channel, transferSwitchToggled, bandTwoSwitchToggled } = this.state;
     const that = this;
-    await get('/api/transfer_switch', { params: { channel: 2, on: +!bandTwoSwitchToggled } }).then(
-      ({ data: { status } }) => {
-        let state = { response: 'undefined' };
-        if (status) {
-          state = {
-            response: `Band 2 ${+status.slice(-1) ? 'through' : 'pass'}`,
-            bandTwoSwitchToggled: !bandTwoSwitchToggled,
-            transferSwitchToggled: channel === 2 ? !bandTwoSwitchToggled : transferSwitchToggled,
-          };
-        }
-        that.setStateFocusCommandInput(state);
+    let commands = [];
+    if (bandTwoSwitchToggled) {
+      commands = [1, 3].map(ch => () => post('/api/automatic_attenuation', { channel: ch }));
+    } else {
+      commands = [1, 3].map(ch => () => post('/api/manual_attenuation', { channel: ch, level: 'a' }));
+    }
+    commands.push(() => get('/api/transfer_switch', { params: { channel: 2, on: +!bandTwoSwitchToggled } }));
+    await resolveSyncronously(commands).then(([{ data: { status } }]) => {
+      let state = { response: 'undefined' };
+      if (status) {
+        state = {
+          response: `Band 2 ${+status.slice(-1) ? 'msfb' : 'main'}`,
+          bandTwoSwitchToggled: !bandTwoSwitchToggled,
+          transferSwitchToggled: channel === 2 ? !bandTwoSwitchToggled : transferSwitchToggled,
+        };
       }
-    );
+      that.setStateFocusCommandInput(state);
+    });
   }
 
   async handleBandThreeCheckSwitchToggle() {
     const { channel, transferSwitchToggled, bandThreeSwitchToggled } = this.state;
     const that = this;
-    await get('/api/transfer_switch', { params: { channel: 3, on: +!bandThreeSwitchToggled } }).then(
-      ({ data: { status } }) => {
-        let state = { response: 'undefined' };
-        if (status) {
-          state = {
-            response: `Band 3 ${+status.slice(-1) ? 'through' : 'pass'}`,
-            bandThreeSwitchToggled: !bandThreeSwitchToggled,
-            transferSwitchToggled: channel === 3 ? !bandThreeSwitchToggled : transferSwitchToggled,
-          };
-        }
-        that.setStateFocusCommandInput(state);
+    let commands = [];
+    if (bandThreeSwitchToggled) {
+      commands = [1, 2, 4].map(ch => () => post('/api/automatic_attenuation', { channel: ch }));
+    } else {
+      commands = [1, 2, 4].map(ch => () => post('/api/manual_attenuation', { channel: ch, level: 'a' }));
+    }
+    commands.push(() => get('/api/transfer_switch', { params: { channel: 3, on: +!bandThreeSwitchToggled } }));
+    await resolveSyncronously(commands).then(([{ data: { status } }]) => {
+      let state = { response: 'undefined' };
+      if (status) {
+        state = {
+          response: `Band 3 ${+status.slice(-1) ? 'msfb' : 'main'}`,
+          bandThreeSwitchToggled: !bandThreeSwitchToggled,
+          transferSwitchToggled: channel === 3 ? !bandThreeSwitchToggled : transferSwitchToggled,
+        };
       }
-    );
+      that.setStateFocusCommandInput(state);
+    });
   }
 
   async handleBandThreeCheckRadioChange({ target: { value } }) {

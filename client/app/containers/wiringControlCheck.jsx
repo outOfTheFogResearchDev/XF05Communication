@@ -12,12 +12,13 @@ const Container = styled.div`
     'title title'
     'transfer-switch filter-bank'
     'blanking attenuation';
-  margin: 15px 5px;
   height: 295px;
   width: 530px;
   padding: 10px 10px;
   border-style: solid;
   border-color: #ddd;
+  justify-self:center;
+  align-self:center:
 `;
 
 const Title = styled.h2`
