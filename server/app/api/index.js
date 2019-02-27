@@ -81,14 +81,14 @@ blanking
 blanking.get('/automatic_algorithm', async (req, res) => {
   const { unit, channel } = req.query;
   try {
-    process.env.inOperation = true;
+    process.env.inOperation = 1;
     const codes = await automaticBlankingCodes(channel);
     const temperature = await port.connection.writeCommand('TA000', tempParser);
     await storeCodeHistory(unit, channel, codes, temperature);
-    process.env.inOperation = false;
+    process.env.inOperation = 0;
     res.status(200).send({ codes, temperature });
   } catch (e) {
-    process.env.inOperation = false;
+    process.env.inOperation = 0;
     res.status(400).send({ error: e.toString() });
   }
 });
@@ -162,11 +162,11 @@ const oip3Endpoint = Router();
 
 oip3Endpoint.get('/', async (req, res) => {
   const { unit, channel } = req.query;
-  process.env.inOperation = true;
+  process.env.inOperation = 1;
   const oip3 = await getOIP3(+channel);
   await storeOIP3History(unit, channel, oip3);
   const temperature = await port.connection.writeCommand('TA000', tempParser);
-  process.env.inOperation = false;
+  process.env.inOperation = 0;
   res.status(200).send({ oip3, temperature });
 });
 
