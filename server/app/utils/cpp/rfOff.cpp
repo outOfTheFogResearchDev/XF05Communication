@@ -15,11 +15,11 @@ void rfOff(const FunctionCallbackInfo<Value> &args)
     viStatus = viOpenDefaultRM(&defaultRM);
     if (generatorNumber == 2)
     {
-        viStatus = viOpen(defaultRM, "GPIB0::19::INSTR", VI_NULL, VI_NULL, &viMXG);
+        viStatus = viOpen(defaultRM, "GPIB2::19::INSTR", VI_NULL, VI_NULL, &viMXG);
     }
     else
     {
-        viStatus = viOpen(defaultRM, "GPIB0::18::INSTR", VI_NULL, VI_NULL, &viMXG);
+        viStatus = viOpen(defaultRM, "GPIB2::18::INSTR", VI_NULL, VI_NULL, &viMXG);
     }
 
     if (viStatus)
