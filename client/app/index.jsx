@@ -59,7 +59,7 @@ const get = (url, params = {}, tries = 0) =>
       resolve(await httpReq.get(url, params));
     } catch (e) {
       if (tries >= 5) {
-        await _alert('issue talking with the XF05 box');
+        _alert('issue talking with the XF05 box');
         resolve({ data: {} });
       } else {
         resolve(get(url, params, tries + 1));
@@ -73,7 +73,7 @@ const post = (url, params = {}, tries = 0) =>
       resolve(await httpReq.post(url, params));
     } catch (e) {
       if (tries >= 5) {
-        await _alert('issue talking with the XF05 box');
+        _alert('issue talking with the XF05 box');
         reject(e);
       } else resolve(post(url, params, tries + 1));
     }
