@@ -248,10 +248,10 @@ export default class extends Component {
   }
 
   addConnectedCheck(func) {
-    return async (...args) => {
+    return (...args) => {
       const { connected } = this.state;
       if (connected) func.apply(this, args);
-      else await _alert('You are not connected to the COM port, please click "Connect"');
+      else _alert('You are not connected to the COM port, please click "Connect"');
     };
   }
 
