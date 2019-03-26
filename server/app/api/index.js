@@ -19,6 +19,7 @@ const {
   getOIP3History,
   storeOIP3History,
 } = require('../utils/csv');
+const { inOperation, outOperation } = require('../ping/index');
 
 const api = Router();
 
@@ -81,14 +82,14 @@ blanking
 blanking.get('/automatic_algorithm', async (req, res) => {
   const { unit, channel } = req.query;
   try {
-    process.env.inOperation = 1;
+    inOperation();
     const codes = await automaticBlankingCodes(channel);
     const temperature = await port.connection.writeCommand('TA000', tempParser);
     await storeCodeHistory(unit, channel, codes, temperature);
-    process.env.inOperation = 0;
+    outOperation();
     res.status(200).send({ codes, temperature });
   } catch (e) {
-    process.env.inOperation = 0;
+    outOperation();
     res.status(400).send({ error: e.toString() });
   }
 });
@@ -162,11 +163,11 @@ const oip3Endpoint = Router();
 
 oip3Endpoint.get('/', async (req, res) => {
   const { unit, channel } = req.query;
-  process.env.inOperation = 1;
+  inOperation();
   const oip3 = await getOIP3(+channel);
   await storeOIP3History(unit, channel, oip3);
   const temperature = await port.connection.writeCommand('TA000', tempParser);
-  process.env.inOperation = 0;
+  outOperation();
   res.status(200).send({ oip3, temperature });
 });
 
