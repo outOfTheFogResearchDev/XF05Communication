@@ -39,6 +39,16 @@ const ping = async () => {
   await axios.post('/ping');
 };
 
+const _window = async (type, string) => {
+  await axios.post('/ping/in_operation');
+  const answer = window[type](string); // eslint-disable-line no-alert
+  return axios.post('/ping/out_operation').then(() => answer);
+};
+
+const _confirm = string => _window('confirm', string);
+
+const _alert = string => _window('alert', string);
+
 const httpReq = axios.create();
 
 httpReq.defaults.timeout = 500;
@@ -49,7 +59,7 @@ const get = (url, params = {}, tries = 0) =>
       resolve(await httpReq.get(url, params));
     } catch (e) {
       if (tries >= 5) {
-        window.alert('issue talking with the XF05 box'); // eslint-disable-line no-alert
+        await _alert('issue talking with the XF05 box');
         resolve({ data: {} });
       } else {
         resolve(get(url, params, tries + 1));
@@ -63,7 +73,7 @@ const post = (url, params = {}, tries = 0) =>
       resolve(await httpReq.post(url, params));
     } catch (e) {
       if (tries >= 5) {
-        window.alert('issue talking with the XF05 box'); // eslint-disable-line no-alert
+        await _alert('issue talking with the XF05 box');
         reject(e);
       } else resolve(post(url, params, tries + 1));
     }
@@ -222,7 +232,7 @@ export default class extends Component {
         await post('/api/hard_connect');
         this.setState({ connected: true, response: 'Connected to XF05' });
       } catch (e) {
-        window.alert('Issue opening COM port to XF05, please connect the USB and click "connect"'); // eslint-disable-line no-alert
+        await _alert('Issue opening COM port to XF05, please connect the USB and click "connect"');
         this.setState({ connected: false });
       }
     } else if (connected) this.setState({ response: 'Connected to XF05' });
@@ -231,7 +241,7 @@ export default class extends Component {
         await post('/api/connect');
         this.setState({ connected: true, response: 'Connected to XF05' });
       } catch (e) {
-        window.alert('Issue opening COM port to XF05, please connect the USB and click "connect"'); // eslint-disable-line no-alert
+        await _alert('Issue opening COM port to XF05, please connect the USB and click "connect"');
         this.setState({ connected: false });
       }
     }
@@ -241,7 +251,7 @@ export default class extends Component {
     return (...args) => {
       const { connected } = this.state;
       if (connected) func.apply(this, args);
-      else window.alert('You are not connected to the COM port, please click "Connect"'); // eslint-disable-line no-alert
+      else await _alert('You are not connected to the COM port, please click "Connect"');
     };
   }
 
@@ -544,11 +554,11 @@ export default class extends Component {
     const { unit, channel } = this.state;
     /* eslint-disable no-alert */
     if (
-      !window.confirm(
+      !(await _confirm(
         `Is the ${
           +channel === 1 ? 'Mini-Circuits ZAPD-30-S+' : 'Fairview Microwave MP0218-2'
         } combiner connected to RF IN on the box and are the two signal generators connected to the combiner?`
-      )
+      ))
     )
       return;
     /* eslint-enable no-alert */
