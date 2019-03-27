@@ -14,7 +14,7 @@ const Container = styled.div`
   border-style: solid;
   border-color: #ddd;
   justify-self:center;
-  align-self:center:
+  align-self:center;
 `;
 
 const Title = styled.h2`
