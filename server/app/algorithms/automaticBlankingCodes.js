@@ -61,7 +61,7 @@ const findBlankingPower = async (power, type) => {
   if (check > -40) {
     if (check - target > 1.5) results[target][type][1] = '> 1.5';
     else {
-      let previous = results[target][type][1];
+      let previous = results[target][type][1] || -70;
       results[target][type][1] = check > previous ? check : previous;
       await findBlankingPower(power + 0.1, type);
     }
