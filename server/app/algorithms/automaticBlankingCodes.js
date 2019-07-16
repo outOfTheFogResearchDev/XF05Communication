@@ -55,16 +55,19 @@ const setOutput = async () => {
   await setPower(frequency, input);
 };
 
-const findBlankingPower = async (power, type) => {
+const findBlankingPower = async (power, type, secondTry) => {
   await setPower(frequency, power);
   const check = await getPower();
   if (check > -40) {
     if (check - target > 1.5) results[target][type][1] = '> 1.5';
     else {
-      let previous = results[target][type][1] || -70;
-      results[target][type][1] = check > previous ? check : previous;
+      results[target][type][1] = check;
       await findBlankingPower(power + 0.1, type);
     }
+  } else {
+    if (secondTry) return;
+    await new Promise(resolve => setTimeout(resolve, 200));
+    await findBlankingPower(power, type, true);
   }
 };
 
