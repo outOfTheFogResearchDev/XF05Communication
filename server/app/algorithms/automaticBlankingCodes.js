@@ -61,7 +61,8 @@ const findBlankingPower = async (power, type, secondTry) => {
   if (check > -40) {
     if (check - target > 1.5) results[target][type][1] = '> 1.5';
     else {
-      results[target][type][1] = check;
+      const previous = results[target][type][1] || -70;
+      results[target][type][1] = check > previous ? check : previous;
       await findBlankingPower(power + 0.1, type);
     }
   } else {
@@ -74,9 +75,9 @@ const findBlankingPower = async (power, type, secondTry) => {
 const findBlankingValues = async () => {
   results[target].low = [code.toString(16).toUpperCase()];
   await setBlanking(170);
-  await setPower(frequency, input - 4);
+  await setPower(frequency, input - 5);
   await setBlanking(code);
-  await findBlankingPower(input - 3.9, 'low');
+  await findBlankingPower(input - 4.9, 'low');
 
   if (results[target].low[1] >= target || results[target].low[1].constructor === String) {
     code -= 1;
@@ -84,9 +85,9 @@ const findBlankingValues = async () => {
   } else {
     results[target].high = [(code + 1).toString(16).toUpperCase()];
     await setBlanking(170);
-    await setPower(frequency, input - 4);
+    await setPower(frequency, input - 5);
     await setBlanking(code + 1);
-    await findBlankingPower(input - 3.9, 'high');
+    await findBlankingPower(input - 4.9, 'high');
     if (results[target].high[1] < target) {
       if (code >= 166) {
         await rfOff();
