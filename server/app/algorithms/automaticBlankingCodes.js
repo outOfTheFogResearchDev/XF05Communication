@@ -58,7 +58,8 @@ const setOutput = async () => {
 const findBlankingPower = async (power, type, secondTry) => {
   await setPower(frequency, power);
   const check = await getPower();
-  if (check > -40) {
+  // -40
+  if (check > -30) {
     if (check - target > 1.5) results[target][type][1] = '> 1.5';
     else {
       const previous = results[target][type][1] || -70;

@@ -4,3 +4,4 @@ bundle/
 build/
 local/
 /.vscode
+debug.log
